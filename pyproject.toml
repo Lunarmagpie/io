@@ -4,14 +4,13 @@ version = "0.1.0"
 description = "A code running discord bot"
 authors = ["Lunarmagpie <bambolambo0@gmail.com>"]
 readme = "README.md"
-packages = [{include = "code_runner"}]
+packages = [{ include = "code_runner" }]
 
 [tool.poetry.dependencies]
 python = "^3.11,<3.12"
 hikari = "^2.0.0.dev116"
 hikari-crescent = "^0.5.2"
 hikari-flare = "^0.1.0b4"
-
 
 [build-system]
 requires = ["poetry-core"]
@@ -26,9 +25,8 @@ typeCheckingMode = "strict"
 line-length = 88
 select = [
     # isort
-    "I001"
+    "I001",
 ]
 
 [tool.black]
 line-length = 88
-
