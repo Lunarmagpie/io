@@ -12,7 +12,7 @@ from bot.embed_builder import EMBED_TITLE, EmbedBuilder
 from bot.piston.models import RunResponseError
 from bot.utils import Plugin
 
-message_cache: t.MutableMapping[hikari.Snowflake, hikari.Message] = cachetools.TTLCache(
+message_cache: t.MutableMapping[hikari.Snowflake, hikari.Snowflake] = cachetools.TTLCache(
     maxsize=10_000, ttl=datetime.timedelta(minutes=20).total_seconds()
 )
 """Dictionary of user message to bot message"""
@@ -144,7 +144,7 @@ async def run(ctx: crescent.Context, message: hikari.Message) -> None:
         ensure_message=True,
     )
 
-    message_cache[message.id] = resp_message
+    message_cache[message.id] = resp_message.id
 
 
 @plugin.include
@@ -162,7 +162,7 @@ async def on_message(event: hikari.MessageCreateEvent):
         reply=event.message,
     )
 
-    message_cache[event.message.id] = resp_message
+    message_cache[event.message.id] = resp_message.id
 
 
 @plugin.include
@@ -179,5 +179,5 @@ async def on_edit(event: hikari.MessageUpdateEvent):
     )
 
     code = await run_code(user_message)
-    await bot_message.edit(embed=code.build())
+    await plugin.app.rest.edit_message(event.channel_id, bot_message, embed=code.build())
     return
