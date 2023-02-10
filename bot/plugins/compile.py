@@ -1,14 +1,21 @@
+import datetime
 import typing as t
 
+import cachetools
 import crescent
 import flare
 import hikari
+from result import Err, Ok, Result
 
 from bot.buttons import delete_button
 from bot.embed_builder import EMBED_TITLE, EmbedBuilder
-from bot.errors import CommandError
 from bot.piston.models import RunResponseError
 from bot.utils import Plugin
+
+message_cache: t.MutableMapping[hikari.Snowflake, hikari.Message] = cachetools.TTLCache(
+    maxsize=10_000, ttl=datetime.timedelta(minutes=20).total_seconds()
+)
+"""Dictionary of user message to bot message"""
 
 plugin = Plugin()
 
@@ -18,9 +25,9 @@ class Code(t.NamedTuple):
     code: str
 
 
-def _find_code(message: str | None, author: hikari.User) -> Code:
+def _find_code(message: str | None, author: hikari.User) -> Result[Code, EmbedBuilder]:
     if not message:
-        raise CommandError(
+        return Err(
             EmbedBuilder()
             .set_title(title=EMBED_TITLE.USER_ERROR)
             .set_description("No code block was found in the provided message.")
@@ -44,24 +51,31 @@ def _find_code(message: str | None, author: hikari.User) -> Code:
             continue
 
     if start_of_code is None or end_of_code is None:
-        raise CommandError(
+        return Err(
             EmbedBuilder()
             .set_title(title=EMBED_TITLE.USER_ERROR)
             .set_description("No code block was found in the provided message.")
             .set_author(author)
         )
 
-    return Code(
-        lang=message_lines[start_of_code].removeprefix("```"),
-        code="\n".join(message_lines[start_of_code + 1 : end_of_code]),
+    return Ok(
+        Code(
+            lang=message_lines[start_of_code].removeprefix("```"),
+            code="\n".join(message_lines[start_of_code + 1 : end_of_code]),
+        )
     )
 
 
-async def run_code(message: hikari.Message) -> hikari.Embed:
-    lang, code = _find_code(message.content, message.author)
+async def run_code(message: hikari.Message) -> EmbedBuilder:
+    res = _find_code(message.content, message.author)
+
+    if isinstance(res, Err):
+        return res.value
+
+    lang, code = res.value
 
     if not lang:
-        raise CommandError(
+        return (
             EmbedBuilder()
             .set_title(title=EMBED_TITLE.USER_ERROR)
             .set_description("No language was specified. The code can't be run.")
@@ -69,7 +83,7 @@ async def run_code(message: hikari.Message) -> hikari.Embed:
         )
 
     if not plugin.model.pison.runtimes.get(lang):
-        raise CommandError(
+        return (
             EmbedBuilder()
             .set_title(title=EMBED_TITLE.USER_ERROR)
             .set_description(f"Language `{lang}` is not supported. Cry about it.")
@@ -81,7 +95,7 @@ async def run_code(message: hikari.Message) -> hikari.Embed:
     result = await plugin.model.pison.execute(lang, version, code)
 
     if isinstance(result, RunResponseError):
-        raise CommandError(
+        return (
             EmbedBuilder()
             .set_title(title=EMBED_TITLE.CODE_COMPILE_ERROR)
             .set_description(f"```{result.error}```")
@@ -89,7 +103,7 @@ async def run_code(message: hikari.Message) -> hikari.Embed:
         )
 
     if result.run.code != 0:
-        raise CommandError(
+        return (
             EmbedBuilder()
             .set_title(title=EMBED_TITLE.CODE_RUNTIME_ERROR)
             .set_description(f"```{result.run.output}```")
@@ -107,17 +121,30 @@ async def run_code(message: hikari.Message) -> hikari.Embed:
             f"Your code ran without errors:\n```\n{output}\n```",
         )
         .set_author(message.author)
-        .build()
     )
 
 
 @plugin.include
-@crescent.message_command(name="Run")
+@crescent.message_command(name="Run Code")
 async def run(ctx: crescent.Context, message: hikari.Message) -> None:
-    await ctx.respond(
-        embed=await run_code(message),
+
+    code_embed = await run_code(message)
+
+    if message_cache.get(message.id):
+        await ctx.respond(
+            "This exact code has already been run in the last 20 minutes."
+            "\nEdit the message to run new code.",
+            ephemeral=True,
+        )
+        return
+
+    resp_message = await ctx.respond(
+        embed=code_embed.build(),
         component=await flare.Row(delete_button(message.author.id)),
+        ensure_message=True,
     )
+
+    message_cache[message.id] = resp_message
 
 
 @plugin.include
@@ -129,8 +156,28 @@ async def on_message(event: hikari.MessageCreateEvent):
     if not event.message.content or not event.message.content.startswith("./run"):
         return
 
-    await event.message.respond(
-        embed=await run_code(event.message),
+    resp_message = await event.message.respond(
+        embed=(await run_code(event.message)).build(),
         component=await flare.Row(delete_button(event.author.id)),
         reply=event.message,
     )
+
+    message_cache[event.message.id] = resp_message
+
+
+@plugin.include
+@crescent.event
+async def on_edit(event: hikari.MessageUpdateEvent):
+    bot_message = message_cache.get(event.message.id)
+
+    if not bot_message:
+        return
+
+    user_message = await plugin.app.rest.fetch_message(
+        event.message.channel_id,
+        event.message.id,
+    )
+
+    code = await run_code(user_message)
+    await bot_message.edit(embed=code.build())
+    return

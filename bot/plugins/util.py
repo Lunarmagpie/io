@@ -4,7 +4,6 @@ import hikari
 
 from bot.buttons import delete_button
 from bot.embed_builder import EmbedBuilder
-from bot.errors import CommandError
 from bot.utils import Plugin
 
 plugin = Plugin()
@@ -48,22 +47,3 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         reply=event.message,
         mentions_reply=True,
     )
-
-
-@plugin.include
-@crescent.catch_command(CommandError)
-async def on_err(exc: CommandError, ctx: crescent.Context):
-    await ctx.respond(
-        embed=exc.embed, component=await flare.Row(delete_button(ctx.user.id))
-    )
-
-
-@plugin.include
-@crescent.catch_event(CommandError)
-async def on_err2(exc: CommandError, event: hikari.Event) -> None:
-    if isinstance(event, hikari.MessageCreateEvent):
-        await event.message.respond(
-            embed=exc.embed,
-            component=await flare.Row(delete_button(event.author.id)),
-            reply=event.message,
-        )
