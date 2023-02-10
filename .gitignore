@@ -162,3 +162,5 @@ cython_debug/
 
 config.py
 poetry.lock
+
+data/
