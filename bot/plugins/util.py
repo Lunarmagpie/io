@@ -12,7 +12,7 @@ plugin = Plugin()
 @plugin.include
 @crescent.command(description="List the supported languages.")
 async def languages(ctx: crescent.Context) -> None:
-    runtime_names = ", ".join(f"`{plugin.model.pison.runtimes.keys()}`")
+    runtime_names = ", ".join(f"`{key}`" for key in plugin.model.pison.runtimes.keys())
 
     embed = (
         EmbedBuilder()
@@ -22,6 +22,27 @@ async def languages(ctx: crescent.Context) -> None:
     )
 
     await ctx.respond(embed=embed)
+
+
+@plugin.include
+@crescent.command(name="language-info")
+class LanguageInfo:
+    language = crescent.option(str)
+
+    async def callback(self, ctx: crescent.Context):
+        lang = plugin.model.pison.runtimes.get(self.language)
+
+        if not lang:
+            await ctx.respond(f"`{self.language}` is not a supported language.")
+            return
+
+        embed = (
+            EmbedBuilder()
+            .set_title(f"Supported Runtimes for `{lang[-1].language}`:")
+            .set_description("\n".join(f"{l.version}" for l in lang))
+        )
+
+        await ctx.respond(embed=embed.build())
 
 
 @plugin.include
