@@ -130,7 +130,7 @@ async def run_code(message: hikari.Message) -> EmbedBuilder:
     return (
         EmbedBuilder()
         .set_description(
-            f"Your code ran without errors:\n```\n{output}\n```",
+            f"**Program Output:**\n```\n{output}\n```",
         )
         .set_author(message.author)
     )
