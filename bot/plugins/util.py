@@ -2,11 +2,19 @@ import crescent
 import flare
 import hikari
 
+import config
 from bot.buttons import delete_button
 from bot.embed_builder import EmbedBuilder
 from bot.utils import Plugin
 
 plugin = Plugin()
+
+HELP_MESSAGE = (
+    f"Hi! My name is {config.NAME}, and my job is to run code."
+    "\nYou can run the code in a message with a code block code by using the"
+    "`Run Code` message command. Alternitively you can prefix your message with"
+    "./run"
+)
 
 
 @plugin.include
@@ -46,6 +54,15 @@ class LanguageInfo:
 
 
 @plugin.include
+@crescent.command
+async def help(ctx: crescent.Context) -> None:
+    await ctx.respond(
+        HELP_MESSAGE,
+        component=await flare.Row(delete_button(ctx.user.id)),
+    )
+
+
+@plugin.include
 @crescent.event
 async def on_message(event: hikari.MessageCreateEvent) -> None:
     if not event.is_human:
@@ -63,7 +80,7 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         return
 
     await event.message.respond(
-        "Hi! My job is to run code. Type the `/help` command to get started.",
+        HELP_MESSAGE,
         component=await flare.Row(delete_button(event.author.id)),
         reply=event.message,
         mentions_reply=True,
