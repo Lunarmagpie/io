@@ -62,12 +62,16 @@ class Client:
     ) -> RunResponse | RunResponseError:
         async with self.aiohttp.post(
             self.url + "/execute",
-            data={"language": lang, "version": version, "files": [code]},
+            data={
+                "language": lang,
+                "version": version,
+                "files": [code],
+            },
         ) as resp:
             try:
                 resp.raise_for_status()
             except aiohttp.ClientResponseError as e:
-                return RunResponseError(error=e.message, code=e.code)
+                return RunResponseError(error=e.message, code=e.status)
 
             json = await resp.json()
 
