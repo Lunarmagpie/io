@@ -106,6 +106,14 @@ async def run_code(message: hikari.Message) -> EmbedBuilder:
             .set_author(message.author)
         )
 
+    if result.compile and result.compile.code != 0:
+        return (
+            EmbedBuilder()
+            .set_title(title=EMBED_TITLE.CODE_COMPILE_ERROR)
+            .set_description(f"```{result.compile.output}```")
+            .set_author(message.author)
+        )
+
     if result.run.code != 0:
         return (
             EmbedBuilder()
