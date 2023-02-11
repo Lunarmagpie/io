@@ -62,7 +62,7 @@ def _find_code(message: str | None, author: hikari.User) -> Result[Code, EmbedBu
 
     return Ok(
         Code(
-            lang=message_lines[start_of_code].removeprefix("```"),
+            lang=plugin.model.pison.unalias(message_lines[start_of_code].removeprefix("```")),
             code="\n".join(message_lines[start_of_code + 1 : end_of_code]),
         )
     )

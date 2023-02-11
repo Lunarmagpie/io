@@ -13,6 +13,7 @@ class Client:
     def __init__(self, url: str) -> None:
         self.url = url.removesuffix("/")
         self.runtimes: dict[str, list[Runtime]] = {}
+        self.aliases: dict[str, str] = {}
 
         self._aiohttp: aiohttp.ClientSession | None = None
 
@@ -43,7 +44,13 @@ class Client:
 
             out[r.language].append(r)
 
+            for alias in r.aliases:
+                self.aliases[alias] = r.language
+
         return out
+
+    def unalias(self, lang: str) -> str:
+        return self.aliases.get(lang, lang)
 
     async def update_data(self):
         while True:
