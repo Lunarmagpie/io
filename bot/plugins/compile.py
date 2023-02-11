@@ -151,7 +151,7 @@ async def run(ctx: crescent.Context, message: hikari.Message) -> None:
 
     resp_message = await ctx.respond(
         embed=code_embed.build(),
-        component=await flare.Row(delete_button(message.author.id)),
+        component=await flare.Row(delete_button(ctx.user.id)),
         ensure_message=True,
     )
 
