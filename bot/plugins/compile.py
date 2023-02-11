@@ -151,7 +151,7 @@ async def run(ctx: crescent.Context, message: hikari.Message) -> None:
 
 @plugin.include
 @crescent.event
-async def on_message(event: hikari.MessageCreateEvent):
+async def on_message(event: hikari.MessageCreateEvent) -> None:
     if not event.is_human:
         return
 
@@ -169,7 +169,7 @@ async def on_message(event: hikari.MessageCreateEvent):
 
 @plugin.include
 @crescent.event
-async def on_edit(event: hikari.MessageUpdateEvent):
+async def on_edit(event: hikari.MessageUpdateEvent) -> None:
     bot_message = message_cache.get(event.message.id)
 
     if not bot_message:
