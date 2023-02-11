@@ -8,7 +8,7 @@ class Model:
     def __init__(self) -> None:
         self._pison: piston.Client | None = None
 
-    async def on_start(self, _: hikari.StartingEvent):
+    async def on_start(self, _: hikari.StartingEvent) -> None:
         self._pison = await piston.Client.build(config.PISTON)
 
     @property

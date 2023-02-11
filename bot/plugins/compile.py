@@ -62,7 +62,9 @@ def _find_code(message: str | None, author: hikari.User) -> Result[Code, EmbedBu
 
     return Ok(
         Code(
-            lang=plugin.model.pison.unalias(message_lines[start_of_code].removeprefix("```")),
+            lang=plugin.model.pison.unalias(
+                message_lines[start_of_code].removeprefix("```")
+            ),
             code="\n".join(message_lines[start_of_code + 1 : end_of_code]),
         )
     )
@@ -134,8 +136,7 @@ async def run(ctx: crescent.Context, message: hikari.Message) -> None:
 
     if message_cache.get(message.id):
         await ctx.respond(
-            "This exact code has already been run in the last 20 minutes."
-            "\nEdit the message to run new code.",
+            "This code already has a runner tied to it. Edit the message to run new code.",
             ephemeral=True,
         )
         return
@@ -185,3 +186,12 @@ async def on_edit(event: hikari.MessageUpdateEvent) -> None:
         event.channel_id, bot_message, embed=code.build()
     )
     return
+
+
+@plugin.include
+@crescent.event
+async def on_delete(event: hikari.MessageDeleteEvent) -> None:
+    for k, v in message_cache.items():
+        if v == event.message_id:
+            message_cache.pop(k)
+            break
