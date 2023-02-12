@@ -18,15 +18,20 @@ HELP_MESSAGE = (
 
 
 @plugin.include
-@crescent.command(description="List the supported languages.")
+@crescent.command(description="List the supported language runtimes.")
 async def languages(ctx: crescent.Context) -> None:
-    runtime_names = ", ".join(f"`{key}`" for key in plugin.model.pison.runtimes.keys())
+    piston_runtimes = ", ".join(
+        f"`{key}`" for key in plugin.model.pison.runtimes.keys()
+    )
+    godbolt_runtimes = ", ".join(
+        f"`{lang.name}`" for lang in plugin.model.godbolt.lanauges
+    )
 
     embed = (
         EmbedBuilder()
-        .set_title("Supported Languages")
-        .set_description(runtime_names)
         .build()
+        .add_field(name="Code Execution", value=piston_runtimes)
+        .add_field(name="Compiler Explorer", value=godbolt_runtimes)
     )
 
     await ctx.respond(embed=embed)
@@ -38,19 +43,28 @@ class LanguageInfo:
     language = crescent.option(str)
 
     async def callback(self, ctx: crescent.Context):
-        lang = plugin.model.pison.runtimes.get(self.language)
+        piston_versions = "\n".join(
+            f"{lang.language} {lang.version}"
+            for lang in plugin.model.pison.runtimes.get(self.language, [])
+        )
+        godbolt_versions = "\n".join(
+            f"{c.compiler_type} {c.semver}"
+            for c in plugin.model.godbolt.compilers
+            if c.lang == self.language
+        )
 
-        if not lang:
+        if not piston_versions or not godbolt_versions:
             await ctx.respond(f"`{self.language}` is not a supported language.")
             return
 
         embed = (
             EmbedBuilder()
-            .set_title(f"Supported Runtimes for `{lang[-1].language}`:")
-            .set_description("\n".join(f"{l.version}" for l in lang))
+            .build()
+            .add_field(name="Code Execution", value=piston_versions)
+            .add_field(name="Compiler Explorer", value=godbolt_versions)
         )
 
-        await ctx.respond(embed=embed.build())
+        await ctx.respond(embed=embed)
 
 
 @plugin.include
