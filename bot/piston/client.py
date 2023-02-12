@@ -1,9 +1,9 @@
 import asyncio
 import collections
+import json
 import typing
 
 import aiohttp
-import json
 
 from bot.piston.models import RunResponse, RunResponseError, Runtime
 
