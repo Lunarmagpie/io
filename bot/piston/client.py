@@ -3,6 +3,7 @@ import collections
 import typing
 
 import aiohttp
+import json
 
 from bot.piston.models import RunResponse, RunResponseError, Runtime
 
@@ -21,7 +22,9 @@ class Client:
     async def build(cls, url: str) -> typing.Self:
         """The constructor for the piston client."""
         self = cls(url=url)
-        self._aiohttp = aiohttp.ClientSession()
+        self._aiohttp = aiohttp.ClientSession(
+            headers={"content-type": "application/json"}
+        )
 
         asyncio.create_task(self.update_data())
 
@@ -60,19 +63,22 @@ class Client:
     async def execute(
         self, lang: str, version: str, code: str
     ) -> RunResponse | RunResponseError:
+        print(version)
         async with self.aiohttp.post(
             self.url + "/execute",
-            data={
-                "language": lang,
-                "version": version,
-                "files": [code],
-            },
+            data=json.dumps(
+                {
+                    "language": lang,
+                    "version": version,
+                    "files": [{"content": code}],
+                }
+            ),
         ) as resp:
             try:
                 resp.raise_for_status()
             except aiohttp.ClientResponseError as e:
                 return RunResponseError(error=e.message, code=e.status)
 
-            json = await resp.json()
+            j = await resp.json()
 
-        return RunResponse.from_payload(json)
+        return RunResponse.from_payload(j)
