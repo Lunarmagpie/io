@@ -1,6 +1,5 @@
 import asyncio
 import collections
-import json
 import typing
 
 import aiohttp
@@ -63,16 +62,13 @@ class Client:
     async def execute(
         self, lang: str, version: str, code: str
     ) -> RunResponse | RunResponseError:
-        print(version)
         async with self.aiohttp.post(
             self.url + "/execute",
-            data=json.dumps(
-                {
-                    "language": lang,
-                    "version": version,
-                    "files": [{"content": code}],
-                }
-            ),
+            json={
+                "language": lang,
+                "version": version,
+                "files": [{"content": code}],
+            },
         ) as resp:
             try:
                 resp.raise_for_status()
