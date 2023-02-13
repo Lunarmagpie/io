@@ -125,7 +125,7 @@ class VersionManager:
 
             await asyncio.sleep(60 * 5)
 
-    async def _find_version(
+    def _find_version(
         self, lang: str, version: str | None = None
     ) -> Result[Language, str]:
         versions = self.langs[lang]
@@ -138,15 +138,21 @@ class VersionManager:
             for i in versions:
                 if version == i.version:
                     language = i
+                    break
             else:
                 return Err(f"No version `{version}` found for language `{lang}`.")
 
         return Ok(language)
 
+    def find_version_unsafe(self, lang: str, version: str | None) -> Language:
+        version_ = self._find_version(lang, version).value
+        assert isinstance(version_, Language)
+        return version_
+
     async def execute(
         self, lang: str, code: str, version: str | None = None
     ) -> Result[RunResponse, str]:
-        language = await self._find_version(lang, version=version)
+        language = self._find_version(lang, version=version)
 
         if isinstance(language, Err):
             return language
@@ -167,7 +173,7 @@ class VersionManager:
     async def compile(
         self, lang: str, code: str, version: str | None = None
     ) -> Result[AsmResponse, str]:
-        language = await self._find_version(lang, version=version)
+        language = self._find_version(lang, version=version)
 
         if isinstance(language, Err):
             return language

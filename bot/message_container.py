@@ -8,13 +8,8 @@ import flare
 import hikari
 from result import Err, Ok, Result
 
-from bot.buttons import delete_button
-from bot.display import EMBED_TITLE, TextDisplay
-
-
-@flare.text_select()
-async def runtime_select(ctx: flare.MessageContext, author: hikari.Snowflake) -> None:
-    print(ctx.values[0])
+from bot.display import TextDisplay
+from bot.version_manager import Language
 
 
 class Code(t.NamedTuple):
@@ -34,13 +29,10 @@ class MessageContainer(abc.ABC):
         )
         self.app = app
 
-    def _find_code(
-        self, message: str | None, author: hikari.User
-    ) -> Result[Code, TextDisplay]:
+    def _find_code(self, message: str | None) -> Result[Code, TextDisplay]:
         if not message:
             return Err(
                 TextDisplay(
-                    title=EMBED_TITLE.USER_ERROR,
                     description="No code block was found in the provided message.",
                 )
             )
@@ -64,7 +56,6 @@ class MessageContainer(abc.ABC):
         if start_of_code is None or end_of_code is None:
             return Err(
                 TextDisplay(
-                    title=EMBED_TITLE.USER_ERROR,
                     description="No code block was found in the provided message.",
                 )
             )
@@ -76,28 +67,51 @@ class MessageContainer(abc.ABC):
             )
         )
 
-    async def _with_code_wrapper(self, message: hikari.Message) -> TextDisplay:
-        res = self._find_code(message.content, message.author)
+    async def with_code_wrapper(
+        self,
+        author: hikari.Snowflake,
+        message: hikari.Message,
+        version: str | None = None,
+    ) -> Result[
+        tuple[TextDisplay, flare.Row], tuple[TextDisplay, hikari.UndefinedType]
+    ]:
+        res = self._find_code(message.content)
+
         if isinstance(res, Err):
-            return res.value
+            return Err((res.value, hikari.UNDEFINED))
 
         if not res.value.lang:
-            return TextDisplay(
-                title=EMBED_TITLE.USER_ERROR,
+            text = TextDisplay(
                 description="No language was specified. The code can't be run.",
             )
+        else:
+            text = await self.with_code(
+                message,
+                res.value.lang,
+                self.get_version(res.value.lang, version).version,
+                res.value.code,
+            )
 
-        return await self.with_code(message, res.value.lang, res.value.code)
+        return Ok(
+            (
+                text,
+                await flare.Row(
+                    self.get_select(
+                        message,
+                        res.value.lang,
+                        self.get_version(res.value.lang, version).version,
+                    )
+                ),
+            )
+        )
 
     @abc.abstractmethod
     async def with_code(
-        self, message: hikari.Message, lang: str, code: str
+        self, message: hikari.Message, lang: str, version: str | None, code: str
     ) -> TextDisplay:
         """Do something with the code."""
 
     async def on_command(self, ctx: crescent.Context, message: hikari.Message) -> None:
-        text = await self._with_code_wrapper(message)
-
         if self.message_cache.get(message.id):
             await ctx.respond(
                 "This code already has a runner tied to it. Edit the message to run new code.",
@@ -105,9 +119,11 @@ class MessageContainer(abc.ABC):
             )
             return
 
+        text, component = (await self.with_code_wrapper(ctx.user.id, message)).value
+
         resp_message = await ctx.respond(
             content=text.format(),
-            component=await flare.Row(delete_button(ctx.user.id)),
+            component=component,
             ensure_message=True,
         )
 
@@ -122,9 +138,13 @@ class MessageContainer(abc.ABC):
         ):
             return
 
+        text, component = (
+            await self.with_code_wrapper(event.author.id, event.message)
+        ).value
+
         resp_message = await event.message.respond(
-            content=(await self._with_code_wrapper(event.message)).format(),
-            component=await flare.Row(delete_button(event.author.id)),
+            content=text.format(),
+            component=component,
             reply=event.message,
         )
 
@@ -141,9 +161,15 @@ class MessageContainer(abc.ABC):
             event.message.id,
         )
 
-        text = await self._with_code_wrapper(user_message)
+        text, component = (
+            await self.with_code_wrapper(user_message.author.id, user_message)
+        ).value
+
         await self.app.rest.edit_message(
-            event.channel_id, bot_message, content=text.format()
+            event.channel_id,
+            bot_message,
+            content=text.format(),
+            component=component,
         )
         return
 
@@ -152,3 +178,83 @@ class MessageContainer(abc.ABC):
             if v == event.message_id:
                 self.message_cache.pop(k)
                 break
+
+    def get_select(
+        self,
+        message: hikari.PartialMessage,
+        lang: str,
+        version: str | None,
+    ) -> flare.TextSelect:
+        runtimes = self.get_runtimes(lang)
+
+        options = [
+            hikari.SelectMenuOption(
+                label=runtime.version,
+                value=f"{runtime.name}:{runtime.version}",
+                description=None,
+                emoji=None,
+                is_default=runtime.version == version,
+            )
+            for runtime in runtimes
+        ]
+
+        return version_select(
+            channel=message.channel_id,
+            message=message.id,
+            container=self,
+        ).set_options(*options)
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_runtimes(lang: str) -> list[Language]:
+        ...
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_version(lang: str, version: str | None) -> Language:
+        ...
+
+
+@flare.text_select()
+async def version_select(
+    ctx: flare.MessageContext,
+    *,
+    channel: hikari.Snowflake,
+    message: hikari.Snowflake,
+    container: MessageContainer | None,
+) -> None:
+    if not container:
+        await ctx.respond(
+            content="This interaction has timed out. Please use the command again.",
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
+        return
+
+    _lang, version = ctx.values[0].split(":")
+
+    message_obj = await ctx.app.rest.fetch_message(channel, message)
+
+    text, component = (
+        await container.with_code_wrapper(ctx.author.id, message_obj, version=version)
+    ).value
+
+    await ctx.edit_response(
+        content=text.format(),
+        component=component,
+    )
+
+
+_saved: dict[int, MessageContainer] = {}
+
+
+class MessageContainerConverter(flare.Converter[MessageContainer | None]):
+    async def to_str(self, obj: MessageContainer | None) -> str:
+        assert obj
+        _saved[id(obj)] = obj
+        return str(id(obj))
+
+    async def from_str(self, obj: str) -> MessageContainer | None:
+        return _saved.get(int(obj))
+
+
+flare.add_converter(MessageContainer, MessageContainerConverter)

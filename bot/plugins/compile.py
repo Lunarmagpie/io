@@ -5,6 +5,7 @@ from result import Err
 from bot.display import EMBED_TITLE, TextDisplay
 from bot.message_container import MessageContainer
 from bot.utils import Plugin
+from bot.version_manager import Language
 
 plugin = Plugin()
 
@@ -13,9 +14,9 @@ container: "Container"
 
 class Container(MessageContainer):
     async def with_code(
-        self, message: hikari.Message, lang: str, code: str
+        self, message: hikari.Message, lang: str, version: str | None, code: str
     ) -> TextDisplay:
-        result = await plugin.model.versions.execute(lang, code)
+        result = await plugin.model.versions.execute(lang, code, version=version)
 
         if isinstance(result, Err):
             return TextDisplay(
@@ -37,6 +38,14 @@ class Container(MessageContainer):
             output = result.value.output
 
         return TextDisplay(title="**Program Output:**", code=output)
+
+    @staticmethod
+    def get_runtimes(lang: str) -> list[Language]:
+        return plugin.model.versions.langs[lang]
+
+    @staticmethod
+    def get_version(lang: str, version: str | None) -> Language:
+        return plugin.model.versions.find_version_unsafe(lang, version)
 
 
 @plugin.load_hook

@@ -5,6 +5,7 @@ from result import Err
 from bot.display import EMBED_TITLE, TextDisplay
 from bot.message_container import MessageContainer
 from bot.utils import Plugin
+from bot.version_manager import Language, Provider
 
 plugin = Plugin()
 
@@ -13,9 +14,9 @@ container: "Container"
 
 class Container(MessageContainer):
     async def with_code(
-        self, message: hikari.Message, lang: str, code: str
+        self, message: hikari.Message, lang: str, version: str | None, code: str
     ) -> TextDisplay:
-        result = await plugin.model.versions.compile(lang, code)
+        result = await plugin.model.versions.compile(lang, code, version=version)
         if isinstance(result, Err):
             return TextDisplay(
                 title=EMBED_TITLE.CODE_RUNTIME_ERROR,
@@ -34,6 +35,19 @@ class Container(MessageContainer):
             output = result.value.asm
 
         return TextDisplay(title="**Program Output:**", code=output)
+
+    @staticmethod
+    def get_runtimes(lang: str) -> list[Language]:
+        return list(
+            filter(
+                lambda x: x.provider == Provider.GODBOLT,
+                plugin.model.versions.langs[lang],
+            )
+        )
+
+    @staticmethod
+    def get_version(lang: str, version: str | None) -> Language:
+        return plugin.model.versions.find_version_unsafe(lang, version)
 
 
 @plugin.load_hook

@@ -42,17 +42,17 @@ class EmbedBuilder:
 
 @dataclasses.dataclass(slots=True)
 class TextDisplay:
-    title: str
+    title: str | None = None
     description: str | None = None
     code: str | None = None
 
     def format(self) -> str:
-        out = self.title
+        out = self.title or ""
 
         if self.description:
             out += f"\n{self.description}"
 
         if self.code:
-            out += f"\n```{self.code}```"
+            out += f"\n```\n{self.code}```"
 
         return out
