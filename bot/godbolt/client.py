@@ -5,7 +5,7 @@ from result import Err, Ok, Result
 
 import config
 from bot.godbolt.models import Compiler, Language
-from bot.response import RunResponse, AsmResponse
+from bot.response import AsmResponse, RunResponse
 
 __all__: list[str] = ["Client"]
 
