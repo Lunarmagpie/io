@@ -5,10 +5,17 @@ import dataclasses
 class RunResponse:
     """Class that represents the result of code execution."""
 
-    language: str
-    version: str
+    provider: str
     stdout: str | None
     stderr: str | None
     output: str | None
     code: int
     signal: str | None
+
+
+@dataclasses.dataclass(slots=True)
+class AsmResponse:
+    provider: str
+    asm: str
+    stderr: str | None
+    code: int

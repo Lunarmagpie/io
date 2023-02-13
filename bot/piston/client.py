@@ -4,7 +4,7 @@ import aiohttp
 from result import Err, Ok, Result
 
 from bot.piston.models import Runtime
-from bot.run_response import RunResponse
+from bot.response import RunResponse
 
 __all__: list[str] = ["Client"]
 
@@ -69,18 +69,17 @@ class Client:
             try:
                 resp.raise_for_status()
             except aiohttp.ClientResponseError as e:
-                return Err(e.message)
+                return Err("An unexpected error occurred:" + e.message)
 
             j = await resp.json()
 
         return Ok(
             RunResponse(
-                language=j["language"],
-                version=j["version"],
                 stdout=j["run"]["stdout"],
                 stderr=j["run"]["stderr"],
                 output=j["run"]["output"],
                 signal=j["run"]["signal"],
                 code=j["run"]["code"],
+                provider="piston",
             )
         )

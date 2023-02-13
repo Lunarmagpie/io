@@ -7,7 +7,7 @@ import typing as t
 from result import Result, Err, Ok
 
 from bot import godbolt, piston
-from bot.run_response import RunResponse
+from bot.response import RunResponse, AsmResponse
 
 
 class Provider(enum.Enum):
@@ -162,4 +162,25 @@ class VersionManager:
             case Provider.PISTON:
                 return await self.piston.execute(
                     language.value.name, language.value.version, code
+                )
+
+    async def compile(
+        self, lang: str, code: str, version: str | None = None
+    ) -> Result[AsmResponse, str]:
+        language = await self._find_version(lang, version=version)
+
+        if isinstance(language, Err):
+            return language
+
+        match language.value.provider:
+            case Provider.GODBOLT:
+                assert (
+                    language.value.internal_id
+                ), "GODBOLT langs should have an internal ID"
+                return await self.godbot.compile(
+                    language.value.name, language.value.internal_id, code
+                )
+            case Provider.PISTON:
+                return Err(
+                    f"ASM inspection is not supported for {language.value.name}."
                 )

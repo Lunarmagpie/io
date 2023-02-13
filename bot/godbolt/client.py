@@ -5,9 +5,16 @@ from result import Err, Ok, Result
 
 import config
 from bot.godbolt.models import Compiler, Language
-from bot.run_response import RunResponse
+from bot.response import RunResponse, AsmResponse
 
 __all__: list[str] = ["Client"]
+
+
+def _getTextOrNone(l: list[dict[str, str]]) -> str | None:
+    if not l:
+        return None
+
+    return "\n".join(filter(None, map(lambda x: x.get("text"), l)))
 
 
 class Client:
@@ -46,14 +53,18 @@ class Client:
 
     async def compile(
         self, lang: str, compiler_id: str, code: str
-    ) -> Result[RunResponse, str]:
+    ) -> Result[AsmResponse, str]:
         async with self.aiohttp.post(
             config.GODBOlT + f"/compiler/{compiler_id}/compile",
             json={
                 "source": code,
                 "lang": lang.lower(),
                 "options": {
+                    "compilerOptions": {
+                        "executorRequest": False,
+                    },
                     "filters": {
+                        "execute": False,
                         "binary": False,
                         "binaryObject": False,
                         "commentOnly": True,
@@ -68,19 +79,24 @@ class Client:
                 },
             },
         ) as resp:
-            print(await resp.json())
+            try:
+                resp.raise_for_status()
+            except aiohttp.ClientResponseError as e:
+                return Err("An unexpected error occurred:" + e.message)
 
-            return Err("NOT IMPLEMENTED")
+            j = await resp.json()
+            return Ok(
+                AsmResponse(
+                    provider="godbolt",
+                    asm=t.cast(str, _getTextOrNone(j["asm"])),
+                    stderr=_getTextOrNone(j["stderr"]),
+                    code=j["code"],
+                )
+            )
 
     async def execute(
         self, lang: str, compiler_id: str, code: str
     ) -> Result[RunResponse, str]:
-        def getTextOrNone(l: list[dict[str, str]]) -> str | None:
-            if not l:
-                return None
-
-            return l[0].get("text")
-
         async with self.aiohttp.post(
             config.GODBOlT + f"/compiler/{compiler_id}/compile",
             json={
@@ -96,17 +112,23 @@ class Client:
                 },
             },
         ) as resp:
+            try:
+                resp.raise_for_status()
+            except aiohttp.ClientResponseError as e:
+                return Err("An unexpected error occurred:" + e.message)
+
             j = await resp.json()
 
-            return Ok(RunResponse(
-                language=lang,
-                version="NONE",
-                stdout=getTextOrNone(j["stdout"]),
-                stderr=getTextOrNone(j["stderr"]),
-                output=getTextOrNone(j["stdout"]),
-                signal=None,
-                code=j["code"],
-            ))
+            return Ok(
+                RunResponse(
+                    stdout=_getTextOrNone(j["stdout"]),
+                    stderr=_getTextOrNone(j["stderr"]),
+                    output=_getTextOrNone(j["stdout"]),
+                    signal=None,
+                    provider="godbolt",
+                    code=j["code"],
+                )
+            )
 
     async def update_data(self):
         self.compilers = await self.get_compilers()

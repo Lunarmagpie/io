@@ -1,5 +1,6 @@
 import crescent
 import hikari
+from result import Err
 
 from bot.embed_builder import EMBED_TITLE, EmbedBuilder
 from bot.message_container import MessageContainer
@@ -14,7 +15,8 @@ class Container(MessageContainer):
     async def with_code(
         self, message: hikari.Message, lang: str, code: str
     ) -> EmbedBuilder:
-        if not plugin.model.versions(lang):
+        result = await plugin.model.versions.compile(lang, code)
+        if isinstance(result, Err):
             return (
                 EmbedBuilder()
                 .set_title(title=EMBED_TITLE.USER_ERROR)
@@ -22,40 +24,20 @@ class Container(MessageContainer):
                 .set_author(message.author)
             )
 
-        id = plugin.model.godbolt.compilers_by_name[lang][-1].id
-
-        result = await plugin.model.godbolt.compile(id, code)
-
-        return EmbedBuilder().set_title("AMONG")
-
-        if isinstance(result, RunResponseError):
+        if result.value.code != 0:
             return (
                 EmbedBuilder()
                 .set_title(title=EMBED_TITLE.CODE_RUNTIME_ERROR)
-                .set_description(f"```{result.error}```")
+                .set_description(f"```{result.value.stderr}```")
                 .set_author(message.author)
             )
 
-        if result.compile and result.compile.code != 0:
-            return (
-                EmbedBuilder()
-                .set_title(title=EMBED_TITLE.CODE_COMPILE_ERROR)
-                .set_description(f"```{result.compile.output}```")
-                .set_author(message.author)
-            )
+        output = result.value.asm
 
-        if result.run.code != 0:
-            return (
-                EmbedBuilder()
-                .set_title(title=EMBED_TITLE.CODE_RUNTIME_ERROR)
-                .set_description(f"```{result.run.output}```")
-                .set_author(message.author)
-            )
-
-        if len(result.run.output) > 1900:
-            output = result.run.output[:1900] + "..."
+        if len(output) > 1900:
+            output = output[:1900] + "..."
         else:
-            output = result.run.output
+            output = output
 
         return (
             EmbedBuilder()
