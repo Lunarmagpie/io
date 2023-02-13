@@ -97,6 +97,7 @@ class MessageContainer(abc.ABC):
                 text,
                 await flare.Row(
                     self.get_select(
+                        author,
                         message,
                         res.value.lang,
                         self.get_version(res.value.lang, version).version,
@@ -181,6 +182,7 @@ class MessageContainer(abc.ABC):
 
     def get_select(
         self,
+        author: hikari.Snowflake,
         message: hikari.PartialMessage,
         lang: str,
         version: str | None,
@@ -199,6 +201,7 @@ class MessageContainer(abc.ABC):
         ]
 
         return version_select(
+            author_id=author,
             channel_id=message.channel_id,
             message_id=message.id,
             container=self,
@@ -222,6 +225,7 @@ _interaction_lock: dict[hikari.Snowflake, str] = {}
 async def version_select(
     ctx: flare.MessageContext,
     *,
+    author_id: hikari.Snowflake,
     channel_id: hikari.Snowflake,
     message_id: hikari.Snowflake,
     container: MessageContainer | None,
@@ -229,6 +233,13 @@ async def version_select(
     if not container:
         await ctx.respond(
             content="This interaction has timed out. Please use the command again.",
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
+        return
+
+    if author_id != ctx.author.id:
+        await ctx.respond(
+            content="Only the user that used this command can change the version.",
             flags=hikari.MessageFlag.EPHEMERAL,
         )
         return
