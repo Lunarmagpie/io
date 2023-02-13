@@ -13,7 +13,7 @@ class EMBED_TITLE(enum.StrEnum):
     CODE_COMPILE_ERROR = "❌ There was an error while compiling your code!"
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class EmbedBuilder:
     title: str | None = None
     desc: str | None = None
@@ -38,3 +38,21 @@ class EmbedBuilder:
         if self.author:
             embed.set_footer(text=f"Requested by {self.author.username}.")
         return embed
+
+
+@dataclasses.dataclass(slots=True)
+class TextDisplay:
+    title: str
+    description: str | None = None
+    code: str | None = None
+
+    def format(self) -> str:
+        out = self.title
+
+        if self.description:
+            out += f"\n{self.description}"
+
+        if self.code:
+            out += f"\n```{self.code}```"
+
+        return out

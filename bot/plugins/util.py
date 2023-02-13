@@ -4,7 +4,7 @@ import hikari
 
 import config
 from bot.buttons import delete_button
-from bot.embed_builder import EmbedBuilder
+from bot.display import EmbedBuilder
 from bot.utils import Plugin
 
 plugin = Plugin()

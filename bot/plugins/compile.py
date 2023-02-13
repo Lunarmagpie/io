@@ -2,7 +2,7 @@ import crescent
 import hikari
 from result import Err
 
-from bot.embed_builder import EMBED_TITLE, EmbedBuilder
+from bot.display import EMBED_TITLE, TextDisplay
 from bot.message_container import MessageContainer
 from bot.utils import Plugin
 
@@ -14,23 +14,19 @@ container: "Container"
 class Container(MessageContainer):
     async def with_code(
         self, message: hikari.Message, lang: str, code: str
-    ) -> EmbedBuilder:
+    ) -> TextDisplay:
         result = await plugin.model.versions.execute(lang, code)
 
         if isinstance(result, Err):
-            return (
-                EmbedBuilder()
-                .set_title(title=EMBED_TITLE.CODE_RUNTIME_ERROR)
-                .set_description(f"```{result.value}```")
-                .set_author(message.author)
+            return TextDisplay(
+                title=EMBED_TITLE.CODE_RUNTIME_ERROR,
+                description=f"```{result.value}```",
             )
 
         if result.value.code != 0:
-            return (
-                EmbedBuilder()
-                .set_title(title=EMBED_TITLE.CODE_RUNTIME_ERROR)
-                .set_description(f"```{result.value.output}```")
-                .set_author(message.author)
+            return TextDisplay(
+                title=EMBED_TITLE.CODE_RUNTIME_ERROR,
+                description=f"```{result.value.stderr}```",
             )
 
         output = result.value.output or ""
@@ -40,13 +36,7 @@ class Container(MessageContainer):
         else:
             output = result.value.output
 
-        return (
-            EmbedBuilder()
-            .set_description(
-                f"**Program Output:**\n```\n{output}\n```",
-            )
-            .set_author(message.author)
-        )
+        return TextDisplay(title="**Program Output:**", code=output)
 
 
 @plugin.load_hook

@@ -9,7 +9,7 @@ import hikari
 from result import Err, Ok, Result
 
 from bot.buttons import delete_button
-from bot.embed_builder import EMBED_TITLE, EmbedBuilder
+from bot.display import EMBED_TITLE, TextDisplay
 
 
 @flare.text_select()
@@ -36,13 +36,13 @@ class MessageContainer(abc.ABC):
 
     def _find_code(
         self, message: str | None, author: hikari.User
-    ) -> Result[Code, EmbedBuilder]:
+    ) -> Result[Code, TextDisplay]:
         if not message:
             return Err(
-                EmbedBuilder()
-                .set_title(title=EMBED_TITLE.USER_ERROR)
-                .set_description("No code block was found in the provided message.")
-                .set_author(author)
+                TextDisplay(
+                    title=EMBED_TITLE.USER_ERROR,
+                    description="No code block was found in the provided message.",
+                )
             )
 
         start_of_code = None
@@ -63,10 +63,10 @@ class MessageContainer(abc.ABC):
 
         if start_of_code is None or end_of_code is None:
             return Err(
-                EmbedBuilder()
-                .set_title(title=EMBED_TITLE.USER_ERROR)
-                .set_description("No code block was found in the provided message.")
-                .set_author(author)
+                TextDisplay(
+                    title=EMBED_TITLE.USER_ERROR,
+                    description="No code block was found in the provided message.",
+                )
             )
 
         return Ok(
@@ -76,17 +76,15 @@ class MessageContainer(abc.ABC):
             )
         )
 
-    async def _with_code_wrapper(self, message: hikari.Message) -> EmbedBuilder:
+    async def _with_code_wrapper(self, message: hikari.Message) -> TextDisplay:
         res = self._find_code(message.content, message.author)
         if isinstance(res, Err):
             return res.value
 
         if not res.value.lang:
-            return (
-                EmbedBuilder()
-                .set_title(title=EMBED_TITLE.USER_ERROR)
-                .set_description("No language was specified. The code can't be run.")
-                .set_author(message.author)
+            return TextDisplay(
+                title=EMBED_TITLE.USER_ERROR,
+                description="No language was specified. The code can't be run.",
             )
 
         return await self.with_code(message, res.value.lang, res.value.code)
@@ -94,11 +92,11 @@ class MessageContainer(abc.ABC):
     @abc.abstractmethod
     async def with_code(
         self, message: hikari.Message, lang: str, code: str
-    ) -> EmbedBuilder:
+    ) -> TextDisplay:
         """Do something with the code."""
 
     async def on_command(self, ctx: crescent.Context, message: hikari.Message) -> None:
-        code_embed = await self._with_code_wrapper(message)
+        text = await self._with_code_wrapper(message)
 
         if self.message_cache.get(message.id):
             await ctx.respond(
@@ -108,7 +106,7 @@ class MessageContainer(abc.ABC):
             return
 
         resp_message = await ctx.respond(
-            embed=code_embed.build(),
+            content=text.format(),
             component=await flare.Row(delete_button(ctx.user.id)),
             ensure_message=True,
         )
@@ -125,7 +123,7 @@ class MessageContainer(abc.ABC):
             return
 
         resp_message = await event.message.respond(
-            embed=(await self._with_code_wrapper(event.message)).build(),
+            content=(await self._with_code_wrapper(event.message)).format(),
             component=await flare.Row(delete_button(event.author.id)),
             reply=event.message,
         )
@@ -143,9 +141,9 @@ class MessageContainer(abc.ABC):
             event.message.id,
         )
 
-        code = await self._with_code_wrapper(user_message)
+        text = await self._with_code_wrapper(user_message)
         await self.app.rest.edit_message(
-            event.channel_id, bot_message, embed=code.build()
+            event.channel_id, bot_message, content=text.format()
         )
         return
 
