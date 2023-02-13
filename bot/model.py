@@ -10,7 +10,7 @@ class Model:
 
     async def on_start(self, _: hikari.StartingEvent) -> None:
         self._versions = await VersionManager.build(
-            piston_url=config.PISTON, godbolt_url=config.GODBOlT
+            piston_url=config.PISTON, godbolt_url=config.GODBOLT
         )
 
     def unalias(self, lang: str) -> str:

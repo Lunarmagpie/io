@@ -55,7 +55,7 @@ class Client:
         self, lang: str, compiler_id: str, code: str
     ) -> Result[AsmResponse, str]:
         async with self.aiohttp.post(
-            config.GODBOlT + f"/compiler/{compiler_id}/compile",
+            config.GODBOLT + f"/compiler/{compiler_id}/compile",
             json={
                 "source": code,
                 "lang": lang.lower(),
@@ -98,7 +98,7 @@ class Client:
         self, lang: str, compiler_id: str, code: str
     ) -> Result[RunResponse, str]:
         async with self.aiohttp.post(
-            config.GODBOlT + f"/compiler/{compiler_id}/compile",
+            config.GODBOLT + f"/compiler/{compiler_id}/compile",
             json={
                 "source": code,
                 "lang": lang.lower(),
