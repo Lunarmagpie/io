@@ -28,36 +28,6 @@ async def languages(ctx: crescent.Context) -> None:
     await ctx.respond(embed=embed)
 
 
-# @plugin.include
-# @crescent.command(name="language-info")
-# class LanguageInfo:
-#     language = crescent.option(str)
-
-#     async def callback(self, ctx: crescent.Context):
-#         piston_versions = "\n".join(
-#             f"{lang.language} {lang.version}"
-#             for lang in plugin.model.pison.runtimes.get(self.language, [])
-#         )
-#         godbolt_versions = "\n".join(
-#             f"{c.compiler_type} {c.semver}"
-#             for c in plugin.model.godbolt.compilers
-#             if c.lang == self.language
-#         )
-
-#         if not piston_versions or not godbolt_versions:
-#             await ctx.respond(f"`{self.language}` is not a supported language.")
-#             return
-
-#         embed = (
-#             EmbedBuilder()
-#             .build()
-#             .add_field(name="Code Execution", value=piston_versions)
-#             .add_field(name="Compiler Explorer", value=godbolt_versions)
-#         )
-
-#         await ctx.respond(embed=embed)
-
-
 @plugin.include
 @crescent.command
 async def help(ctx: crescent.Context) -> None:
