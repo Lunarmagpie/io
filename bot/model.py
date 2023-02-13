@@ -1,27 +1,22 @@
 import hikari
 
 import config
-from bot import godbolt, piston
+from bot.version_manager import VersionManager
 
 
 class Model:
     def __init__(self) -> None:
-        self._pison: piston.Client | None = None
-        self._godbolt: godbolt.Client | None = None
+        self._versions = VersionManager()
 
     async def on_start(self, _: hikari.StartingEvent) -> None:
-        self._pison = await piston.Client.build(config.PISTON)
-        self._godbolt = await godbolt.Client.build(config.GODBOlT)
+        self._versions = await VersionManager.build(
+            piston_url=config.PISTON, godbolt_url=config.GODBOlT
+        )
 
     def unalias(self, lang: str) -> str:
-        return self.pison.unalias(lang)
+        return self.versions.piston.unalias(lang)
 
     @property
-    def pison(self) -> piston.Client:
-        assert self._pison
-        return self._pison
-
-    @property
-    def godbolt(self) -> godbolt.Client:
-        assert self._godbolt
-        return self._godbolt
+    def versions(self) -> VersionManager:
+        assert self._versions
+        return self._versions

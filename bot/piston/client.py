@@ -1,10 +1,10 @@
-import asyncio
-import collections
 import typing
 
 import aiohttp
+from result import Err, Ok, Result
 
-from bot.piston.models import RunResponse, RunResponseError, Runtime
+from bot.piston.models import Runtime
+from bot.run_response import RunResponse
 
 __all__: list[str] = ["Client"]
 
@@ -12,7 +12,7 @@ __all__: list[str] = ["Client"]
 class Client:
     def __init__(self, url: str) -> None:
         self.url = url.removesuffix("/")
-        self.runtimes: dict[str, list[Runtime]] = {}
+        self.runtimes: list[Runtime] = []
         self.aliases: dict[str, str] = {}
 
         self._aiohttp: aiohttp.ClientSession | None = None
@@ -25,8 +25,6 @@ class Client:
             headers={"content-type": "application/json"}
         )
 
-        asyncio.create_task(self.update_data())
-
         return self
 
     @property
@@ -34,17 +32,17 @@ class Client:
         assert self._aiohttp, "Aiohttp client needs to be created."
         return self._aiohttp
 
-    async def get_runtimes(self) -> dict[str, list[Runtime]]:
+    async def get_runtimes(self) -> list[Runtime]:
         async with self.aiohttp.get(self.url + "/runtimes") as resp:
             resp.raise_for_status()
             json = await resp.json()
 
-        out: dict[str, list[Runtime]] = collections.defaultdict(list)
+        out: list[Runtime] = []
 
         for runtime in json:
             r = Runtime.from_payload(runtime)
 
-            out[r.language].append(r)
+            out.append(r)
 
             for alias in r.aliases:
                 self.aliases[alias] = r.language
@@ -55,13 +53,11 @@ class Client:
         return self.aliases.get(lang, lang)
 
     async def update_data(self):
-        while True:
-            self.runtimes = await self.get_runtimes()
-            await asyncio.sleep(60 * 5)
+        self.runtimes = await self.get_runtimes()
 
     async def execute(
         self, lang: str, version: str, code: str
-    ) -> RunResponse | RunResponseError:
+    ) -> Result[RunResponse, str]:
         async with self.aiohttp.post(
             self.url + "/execute",
             json={
@@ -73,8 +69,18 @@ class Client:
             try:
                 resp.raise_for_status()
             except aiohttp.ClientResponseError as e:
-                return RunResponseError(error=e.message, code=e.status)
+                return Err(e.message)
 
             j = await resp.json()
 
-        return RunResponse.from_payload(j)
+        return Ok(
+            RunResponse(
+                language=j["language"],
+                version=j["version"],
+                stdout=j["run"]["stdout"],
+                stderr=j["run"]["stderr"],
+                output=j["run"]["output"],
+                signal=j["run"]["signal"],
+                code=j["run"]["code"],
+            )
+        )
