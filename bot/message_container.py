@@ -199,8 +199,8 @@ class MessageContainer(abc.ABC):
         ]
 
         return version_select(
-            channel=message.channel_id,
-            message=message.id,
+            channel_id=message.channel_id,
+            message_id=message.id,
             container=self,
         ).set_options(*options)
 
@@ -215,12 +215,15 @@ class MessageContainer(abc.ABC):
         ...
 
 
-@flare.text_select()
+_interaction_lock: dict[hikari.Snowflake, str] = {}
+
+
+@flare.text_select(min_values=1, max_values=1)
 async def version_select(
     ctx: flare.MessageContext,
     *,
-    channel: hikari.Snowflake,
-    message: hikari.Snowflake,
+    channel_id: hikari.Snowflake,
+    message_id: hikari.Snowflake,
     container: MessageContainer | None,
 ) -> None:
     if not container:
@@ -230,18 +233,31 @@ async def version_select(
         )
         return
 
+    if version := _interaction_lock.get(message_id):
+        await ctx.respond(
+            content=f"A request is already being processed for `{version}`. Please wait.",
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
+        return
+
     _lang, version = ctx.values[0].split(":")
 
-    message_obj = await ctx.app.rest.fetch_message(channel, message)
+    _interaction_lock[message_id] = version
+
+    await ctx.defer()
+
+    message = await ctx.app.rest.fetch_message(channel_id, message_id)
 
     text, component = (
-        await container.with_code_wrapper(ctx.author.id, message_obj, version=version)
+        await container.with_code_wrapper(ctx.author.id, message, version=version)
     ).value
 
     await ctx.edit_response(
         content=text.format(),
         component=component,
     )
+
+    _interaction_lock.pop(message_id)
 
 
 _saved: dict[int, MessageContainer] = {}
