@@ -13,13 +13,13 @@ color_map = {
     (128, 0, 128): "35",  # dark magenta
     (0, 128, 128): "36",  # dark cyan
     (192, 192, 192): "37",  # light gray
-    (128, 128, 128): "90",  # dark gray
-    (255, 0, 0): "91",  # bright red
-    (0, 255, 0): "92",  # bright green
-    (255, 255, 0): "93",  # bright yellow
-    (0, 0, 255): "94",  # bright blue
-    (255, 0, 255): "95",  # bright magenta
-    (0, 255, 255): "96",  # bright cyan
+    (128, 128, 128): "30",  # dark gray
+    (255, 0, 0): "31",  # bright red
+    (0, 255, 0): "32",  # bright green
+    (255, 255, 0): "33",  # bright yellow
+    (0, 0, 255): "34",  # bright blue
+    (255, 0, 255): "35",  # bright magenta
+    (0, 255, 255): "36",  # bright cyan
 }
 
 
@@ -45,8 +45,8 @@ def ansi_8_bit_to_rgb(ansi_code: int) -> tuple[int, int, int] | str:
     space -= 16
 
     b = space % 6
-    g = space % 36
-    r = space - b - g
+    g = space % 36 - b
+    r = space - (36 * b) - (6 * g)
 
     return (int(r), int(g), int(b))
 
