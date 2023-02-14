@@ -21,7 +21,7 @@ class Container(MessageContainer):
         if isinstance(result, Err):
             return TextDisplay(
                 title=EMBED_TITLE.CODE_RUNTIME_ERROR,
-                description=f"```{result.value}```",
+                code=result.value,
             )
 
         if result.value.code != 0:
