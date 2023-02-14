@@ -20,13 +20,13 @@ class Container(MessageContainer):
         if isinstance(result, Err):
             return TextDisplay(
                 title=EMBED_TITLE.CODE_RUNTIME_ERROR,
-                description=f"```{result.value}```",
+                code=result.value,
             )
 
         if result.value.code != 0:
             return TextDisplay(
                 title=EMBED_TITLE.CODE_RUNTIME_ERROR,
-                description=f"```{result.value.stderr}```",
+                code=result.value.stderr,
             )
 
         if len(result.value.asm) > 1900:
