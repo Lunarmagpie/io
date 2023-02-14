@@ -235,6 +235,7 @@ class MessageContainer(abc.ABC):
             event.channel_id,
             bot_message,
             content=text.format(),
+            mentions_reply=False,
             component=component,
         )
 
