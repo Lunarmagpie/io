@@ -59,7 +59,6 @@ def on_load() -> None:
 @plugin.include
 @crescent.message_command(name="Assembly")
 async def asm(ctx: crescent.Context, message: hikari.Message) -> None:
-    await ctx.defer()
     await container.on_command(ctx, message)
 
 
