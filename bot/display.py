@@ -3,6 +3,7 @@ __all__: list[str] = ["EmbedBuilder", "EMBED_TITLE"]
 import dataclasses
 import enum
 import typing as t
+from bot.ansi import approximate_ansi
 
 import hikari
 
@@ -53,10 +54,15 @@ class TextDisplay:
             out += f"\n{self.description}"
 
         if self.code:
+            # GCC is stupid.
             cleaner = self.code.replace("\x1b[K", "")
             # Discord doesn't understand this alias.
             cleaner = cleaner.replace("\x1b[m", "\x1b[0m")
 
-            out += f"\n```ansi\n{cleaner}\n```"
+            out += f"\n```ansi\n{approximate_ansi(cleaner)}\n```"
+
+            print(cleaner)
+
+            print(approximate_ansi(cleaner))
 
         return out
