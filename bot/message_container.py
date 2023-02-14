@@ -10,6 +10,7 @@ import hikari
 import hikari.components
 from result import Err, Ok, Result
 
+import config
 from bot.display import TextDisplay
 from bot.version_manager import Language
 
@@ -114,6 +115,26 @@ class MessageContainer(abc.ABC):
             )
         )
 
+    async def add_reaction(
+        self, *, channel_id: hikari.Snowflake, message_id: hikari.Snowflake
+    ) -> None:
+        await self.app.rest.add_reaction(
+            channel_id,
+            message_id,
+            emoji=config.LOADING_EMOJI,
+        )
+
+    def remove_reaction(
+        self, *, channel_id: hikari.Snowflake, message_id: hikari.Snowflake
+    ) -> None:
+        asyncio.ensure_future(
+            self.app.rest.delete_my_reaction(
+                channel_id,
+                message_id,
+                emoji=config.LOADING_EMOJI,
+            )
+        )
+
     @abc.abstractmethod
     async def with_code(
         self, message: hikari.Message, lang: str, version: str | None, code: str
@@ -147,9 +168,15 @@ class MessageContainer(abc.ABC):
         ):
             return
 
+        await self.add_reaction(
+            channel_id=event.channel_id, message_id=event.message_id
+        )
+
         text, component = (
             await self.with_code_wrapper(event.author.id, event.message)
         ).value
+
+        self.remove_reaction(channel_id=event.channel_id, message_id=event.message_id)
 
         resp_message = await event.message.respond(
             content=text.format(),
@@ -164,6 +191,10 @@ class MessageContainer(abc.ABC):
 
         if not bot_message:
             return
+
+        await self.add_reaction(
+            channel_id=event.channel_id, message_id=event.message_id
+        )
 
         user_message, bot_message = await asyncio.gather(
             self.app.rest.fetch_message(
@@ -196,13 +227,14 @@ class MessageContainer(abc.ABC):
             )
         ).value
 
+        self.remove_reaction(channel_id=event.channel_id, message_id=event.message_id)
+
         await self.app.rest.edit_message(
             event.channel_id,
             bot_message,
             content=text.format(),
             component=component,
         )
-        return
 
     async def on_delete(self, event: hikari.MessageDeleteEvent) -> None:
         for k, v in self.message_cache.items():
@@ -285,6 +317,8 @@ async def version_select(
 
     _interaction_lock[message_id] = version
 
+    await container.add_reaction(channel_id=channel_id, message_id=message_id)
+
     await ctx.defer()
 
     message = await ctx.app.rest.fetch_message(channel_id, message_id)
@@ -292,6 +326,8 @@ async def version_select(
     text, component = (
         await container.with_code_wrapper(ctx.author.id, message, version=version)
     ).value
+
+    container.remove_reaction(channel_id=channel_id, message_id=message_id)
 
     await ctx.edit_response(
         content=text.format(),
