@@ -58,6 +58,20 @@ def _sort_langs_inplace(l: list[Language]) -> None:
     l.sort(key=f, reverse=True)
 
 
+def latest_of_type(l: list[Language], name: str, amount: int):
+    """`l` is a sorted list."""
+    out: list[Language] = []
+
+    for i in l:
+        if i.full_name.startswith(name):
+            out += [i]
+
+        if len(out) == amount:
+            break
+
+    return out
+
+
 class VersionManager:
     """Manages the different versions of languages from different sources."""
 
@@ -125,6 +139,30 @@ class VersionManager:
 
             for langs in self.langs.values():
                 _sort_langs_inplace(langs)
+
+            # Because there are so many C/++ versions only a few are selected.
+
+            # fmt: off
+            self.langs["c"] = latest_of_type(
+                self.langs["c"], "x86-64 clang", 2,
+            ) + latest_of_type(
+                self.langs["c"], "x86-64 gcc", 2,
+            ) + latest_of_type(
+                self.langs["c"], "x86-64 icx", 1,
+            )+ latest_of_type(
+                self.langs["c"], "x86-64 icc", 1,
+            )
+
+            self.langs["c++"] = latest_of_type(
+                self.langs["c++"], "x86-64 clang", 2,
+            ) + latest_of_type(
+                self.langs["c++"], "x86-64 gcc", 2,
+            ) + latest_of_type(
+                self.langs["c++"], "x86-64 icx", 1,
+            )+ latest_of_type(
+                self.langs["c++"], "x86-64 icc", 1,
+            )
+            # fmt: on
 
             await asyncio.sleep(60 * 5)
 
