@@ -1,4 +1,5 @@
 import abc
+import asyncio
 import datetime
 import typing as t
 
@@ -6,6 +7,7 @@ import cachetools
 import crescent
 import flare
 import hikari
+import hikari.components
 from result import Err, Ok, Result
 
 from bot.display import TextDisplay
@@ -72,6 +74,7 @@ class MessageContainer(abc.ABC):
         author: hikari.Snowflake,
         message: hikari.Message,
         version: str | None = None,
+        old_lang: str | None = None,
     ) -> Result[
         tuple[TextDisplay, flare.Row], tuple[TextDisplay, hikari.UndefinedType]
     ]:
@@ -80,15 +83,20 @@ class MessageContainer(abc.ABC):
         if isinstance(res, Err):
             return Err((res.value, hikari.UNDEFINED))
 
-        if not res.value.lang:
+        lang = res.value.lang
+
+        if old_lang and old_lang != lang:
+            version = None
+
+        if not lang:
             text = TextDisplay(
                 description="No language was specified. The code can't be run.",
             )
         else:
             text = await self.with_code(
                 message,
-                res.value.lang,
-                self.get_version(res.value.lang, version).version,
+                lang,
+                self.get_version(lang, version).version,
                 res.value.code,
             )
 
@@ -99,8 +107,8 @@ class MessageContainer(abc.ABC):
                     self.get_select(
                         author,
                         message,
-                        res.value.lang,
-                        self.get_version(res.value.lang, version).version,
+                        lang,
+                        self.get_version(lang, version).version,
                     )
                 ),
             )
@@ -157,13 +165,35 @@ class MessageContainer(abc.ABC):
         if not bot_message:
             return
 
-        user_message = await self.app.rest.fetch_message(
-            event.message.channel_id,
-            event.message.id,
+        user_message, bot_message = await asyncio.gather(
+            self.app.rest.fetch_message(
+                event.message.channel_id,
+                event.message.id,
+            ),
+            self.app.rest.fetch_message(
+                event.message.channel_id,
+                bot_message,
+            ),
         )
 
+        # We can grab the selected version from the components.
+        # This makes it so I don't have to cache it.
+        option = next(
+            filter(
+                lambda x: x.is_default,
+                t.cast(
+                    hikari.components.TextSelectMenuComponent,
+                    bot_message.components[0].components[0],
+                ).options,
+            )
+        )
+
+        lang, version = option.value.split(":")
+
         text, component = (
-            await self.with_code_wrapper(user_message.author.id, user_message)
+            await self.with_code_wrapper(
+                user_message.author.id, user_message, version=version, old_lang=lang
+            )
         ).value
 
         await self.app.rest.edit_message(
