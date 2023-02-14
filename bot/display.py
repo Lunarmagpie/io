@@ -3,9 +3,10 @@ __all__: list[str] = ["EmbedBuilder", "EMBED_TITLE"]
 import dataclasses
 import enum
 import typing as t
-from bot.ansi import approximate_ansi
 
 import hikari
+
+from bot.ansi import approximate_ansi
 
 
 class EMBED_TITLE(enum.StrEnum):
@@ -61,8 +62,7 @@ class TextDisplay:
 
             out += f"\n```ansi\n{approximate_ansi(cleaner)}\n```"
 
-            print(cleaner)
-
-            print(approximate_ansi(cleaner))
+        if self.code is not None and not len(self.code):
+            out += f"\n```\nNo output```"
 
         return out
