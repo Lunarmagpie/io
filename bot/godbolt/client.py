@@ -119,8 +119,6 @@ class Client:
 
             j = await resp.json()
 
-            print(j)
-
             exit_code = j["code"]
 
             if exit_code == -1:
@@ -132,7 +130,7 @@ class Client:
                         output=_getTextOrNone(j["stdout"]),
                         signal=None,
                         provider="godbolt",
-                        code=j["code"],
+                        code=exit_code,
                     )
                 )
             else:

@@ -4,7 +4,6 @@ import dataclasses
 import enum
 import typing as t
 
-import dahlia
 import hikari
 
 
@@ -54,6 +53,6 @@ class TextDisplay:
             out += f"\n{self.description}"
 
         if self.code:
-            out += f"\n```\n {dahlia.clean_ansi(self.code)}```"
+            out += f"\n```ansi\n {self.code}```"
 
         return out
