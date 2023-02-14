@@ -99,17 +99,17 @@ class VersionManager:
             self.langs = collections.defaultdict(list)
 
             for compiler in self.godbot.compilers:
-                self.langs[compiler.lang].append(
-                    Language(
-                        provider=Provider.GODBOLT,
-                        name=compiler.lang,
-                        full_name=compiler.name,
-                        version=compiler.semver,
-                        is_executable=True,
-                        is_explorable=True,
-                        internal_id=compiler.id,
-                    )
+                lang = Language(
+                    provider=Provider.GODBOLT,
+                    name=compiler.lang,
+                    full_name=compiler.name,
+                    version=compiler.semver,
+                    is_executable=True,
+                    is_explorable=True,
+                    internal_id=compiler.id,
                 )
+                if lang not in self.langs[compiler.lang]:
+                    self.langs[compiler.lang].append(lang)
 
             for runtime in self.piston.runtimes:
                 lang = Language(

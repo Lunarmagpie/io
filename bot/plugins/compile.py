@@ -27,7 +27,7 @@ class Container(MessageContainer):
         if result.value.code != 0:
             return TextDisplay(
                 title=EMBED_TITLE.CODE_RUNTIME_ERROR,
-                description=f"```{result.value.stderr}```",
+                code=result.value.stderr,
             )
 
         output = result.value.output or ""

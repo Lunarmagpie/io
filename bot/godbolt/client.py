@@ -119,16 +119,33 @@ class Client:
 
             j = await resp.json()
 
-            return Ok(
-                RunResponse(
-                    stdout=_getTextOrNone(j["stdout"]),
-                    stderr=_getTextOrNone(j["stderr"]),
-                    output=_getTextOrNone(j["stdout"]),
-                    signal=None,
-                    provider="godbolt",
-                    code=j["code"],
+            print(j)
+
+            exit_code = j["code"]
+
+            if exit_code == -1:
+                # Build failure
+                return Ok(
+                    RunResponse(
+                        stdout=_getTextOrNone(j["stdout"]),
+                        stderr=_getTextOrNone(j["buildResult"]["stderr"]),
+                        output=_getTextOrNone(j["stdout"]),
+                        signal=None,
+                        provider="godbolt",
+                        code=j["code"],
+                    )
                 )
-            )
+            else:
+                return Ok(
+                    RunResponse(
+                        stdout=_getTextOrNone(j["stdout"]),
+                        stderr=_getTextOrNone(j["stderr"]),
+                        output=_getTextOrNone(j["stdout"]),
+                        signal=None,
+                        provider="godbolt",
+                        code=j["code"],
+                    )
+                )
 
     async def update_data(self):
         self.compilers = await self.get_compilers()
