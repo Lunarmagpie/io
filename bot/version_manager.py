@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import asyncio
 import collections
-import contextlib
 import dataclasses
 import enum
 import typing as t
@@ -21,6 +22,8 @@ class Language:
     """The API that can run this language."""
     name: str
     """The name of the language."""
+    full_name: str
+    """The name of the language with the version."""
     version: str
     """The semver version."""
 
@@ -32,20 +35,19 @@ class Language:
     internal_id: str | None = None
     """Internal ID used by API to refer to this language."""
 
-
-class UnsortableError(Exception):
-    ...
+    def __eq__(self, other: t.Any) -> bool:
+        return self.name == other.name and self.version == other.version
 
 
 def _sort_langs_inplace(l: list[Language]) -> None:
     def safe_int(i: str) -> int | None:
         if i.isnumeric():
             return int(i)
-        raise UnsortableError
+        return 0
 
     def f(l: Language) -> tuple[int, int, int]:
         if not "." in l.version:
-            raise UnsortableError
+            return (0, 0, 0)
 
         semver = l.version.split(".")
 
@@ -53,8 +55,7 @@ def _sort_langs_inplace(l: list[Language]) -> None:
 
         return tuple(map(safe_int, semver))  # type: ignore
 
-    with contextlib.suppress(UnsortableError):
-        l.sort(key=f)
+    l.sort(key=f, reverse=True)
 
 
 class VersionManager:
@@ -102,6 +103,7 @@ class VersionManager:
                     Language(
                         provider=Provider.GODBOLT,
                         name=compiler.lang,
+                        full_name=compiler.name,
                         version=compiler.semver,
                         is_executable=True,
                         is_explorable=True,
@@ -110,15 +112,16 @@ class VersionManager:
                 )
 
             for runtime in self.piston.runtimes:
-                self.langs[runtime.language].append(
-                    Language(
-                        provider=Provider.PISTON,
-                        name=runtime.language,
-                        version=runtime.version,
-                        is_executable=True,
-                        is_explorable=False,
-                    )
+                lang = Language(
+                    provider=Provider.PISTON,
+                    name=runtime.language,
+                    full_name=f"{runtime.language} {runtime.version}",
+                    version=runtime.version,
+                    is_executable=True,
+                    is_explorable=False,
                 )
+                if lang not in self.langs[runtime.language]:
+                    self.langs[runtime.language].append(lang)
 
             for langs in self.langs.values():
                 _sort_langs_inplace(langs)
@@ -133,7 +136,7 @@ class VersionManager:
         language: Language
 
         if not version:
-            language = versions[-1]
+            language = versions[0]
         else:
             for i in versions:
                 if version == i.version:

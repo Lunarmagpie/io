@@ -221,7 +221,7 @@ class MessageContainer(abc.ABC):
 
         options = [
             hikari.SelectMenuOption(
-                label=runtime.version,
+                label=runtime.full_name,
                 value=f"{runtime.name}:{runtime.version}",
                 description=None,
                 emoji=None,
@@ -235,7 +235,7 @@ class MessageContainer(abc.ABC):
             channel_id=message.channel_id,
             message_id=message.id,
             container=self,
-        ).set_options(*options)
+        ).set_options(*options[:25])
 
     @staticmethod
     @abc.abstractmethod
