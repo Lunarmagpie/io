@@ -48,7 +48,7 @@ def ansi_8_bit_to_rgb(ansi_code: int) -> tuple[int, int, int] | str:
     g = space % 36 - b
     r = space - (36 * b) - (6 * g)
 
-    return (int(r/36), int(g), int(b/6))
+    return (int(r / 36), int(g), int(b / 6))
 
 
 ansi_escape_regex = re.compile(
