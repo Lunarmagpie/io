@@ -149,6 +149,8 @@ class MessageContainer(abc.ABC):
             )
             return
 
+        await ctx.defer()
+
         text, component = (await self.with_code_wrapper(ctx.user.id, message)).value
 
         resp_message = await ctx.respond(
