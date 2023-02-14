@@ -88,8 +88,8 @@ class Client:
             return Ok(
                 AsmResponse(
                     provider="godbolt",
-                    asm=t.cast(str, _getTextOrNone(j["asm"])) or "",
-                    stderr=_getTextOrNone(j["stderr"]) or "",
+                    asm=t.cast(str, _getTextOrNone(j["asm"])),
+                    stderr=_getTextOrNone(j["stderr"]),
                     code=j["code"],
                 )
             )
@@ -125,9 +125,9 @@ class Client:
                 # Build failure
                 return Ok(
                     RunResponse(
-                        stdout=_getTextOrNone(j["stdout"]) or "",
-                        stderr=_getTextOrNone(j["buildResult"]["stderr"]) or "",
-                        output=_getTextOrNone(j["stdout"]) or "",
+                        stdout=_getTextOrNone(j["stdout"]),
+                        stderr=_getTextOrNone(j["buildResult"]["stderr"]),
+                        output=_getTextOrNone(j["stdout"]),
                         signal=None,
                         provider="godbolt",
                         code=exit_code,
@@ -136,9 +136,9 @@ class Client:
             else:
                 return Ok(
                     RunResponse(
-                        stdout=_getTextOrNone(j["stdout"]) or "",
-                        stderr=_getTextOrNone(j["stderr"]) or "",
-                        output=_getTextOrNone(j["stdout"]) or "",
+                        stdout=_getTextOrNone(j["stdout"]),
+                        stderr=_getTextOrNone(j["stderr"]),
+                        output=_getTextOrNone(j["stdout"]),
                         signal=None,
                         provider="godbolt",
                         code=j["code"],

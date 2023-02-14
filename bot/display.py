@@ -9,6 +9,14 @@ import hikari
 from bot.ansi import approximate_ansi
 
 
+class _EMPTY:
+    def __bool__(self) -> t.Literal[False]:
+        return False
+
+
+_empty = _EMPTY()
+
+
 class EMBED_TITLE(enum.StrEnum):
     USER_ERROR = "❌ The was an error!"
     CODE_RUNTIME_ERROR = "❌ There was an error while running your code!"
@@ -44,9 +52,9 @@ class EmbedBuilder:
 
 @dataclasses.dataclass(slots=True)
 class TextDisplay:
-    title: str | None = None
-    description: str | None = None
-    code: str | None = None
+    title: str | None | _EMPTY = _empty
+    description: str | None | _EMPTY = _empty
+    code: str | None | _EMPTY = _empty
 
     def format(self) -> str:
         out = self.title or ""
@@ -62,7 +70,7 @@ class TextDisplay:
 
             out += f"\n```ansi\n{approximate_ansi(cleaner)}\n```"
 
-        if self.code is not None and not len(self.code):
+        if self.code is None:
             out += f"\n```\nNo output```"
 
         return out
