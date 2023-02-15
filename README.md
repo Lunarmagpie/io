@@ -8,7 +8,7 @@ Code can be run with the `Run Code` message command, or messages can be prefixed
 
 - [x] Support pison.
 - [x] Support editing messages.
-- [ ] Support multiple compilers per lang.
-- [ ] Support compiler explorer.
+- [x] Support multiple compilers per lang.
+- [x] Support compiler explorer.
 
 (ping me or make an issue for another feature.)
