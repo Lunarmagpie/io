@@ -24,7 +24,6 @@ color_map = {
 
 
 def ansi_8_bit_to_rgb(ansi_code: int) -> tuple[int, int, int] | str:
-    # Make sure input is valid
     if not 0 <= ansi_code <= 255:
         raise ValueError("Input must be an integer between 0 and 255")
 
@@ -38,17 +37,15 @@ def ansi_8_bit_to_rgb(ansi_code: int) -> tuple[int, int, int] | str:
         step = int(float(255 / 24) * (255 - ansi_code))
         return (step, step, step)
 
-    space = ansi_code - 16
+    return web_safe_color(ansi_code - 16)
 
-    # 16 + 36 × r + 6 × g + b
 
-    space -= 16
+def web_safe_color(n: int) -> tuple[int, int, int]:
+    g = (n % 36) // 6
+    b = n % 6
+    r = (n - g - b) // 36
 
-    b = space % 6
-    g = space % 36 - b
-    r = space - (36 * b) - (6 * g)
-
-    return (int(r / 36), int(g), int(b / 6))
+    return (r * 51, g * 51, b * 51)
 
 
 ansi_escape_regex = re.compile(

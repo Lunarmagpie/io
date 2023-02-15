@@ -60,3 +60,14 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         reply=event.message,
         mentions_reply=True,
     )
+
+
+@plugin.include
+@crescent.message_command(name="Delete")
+async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
+    await message.delete()
+
+    await ctx.respond(
+        content="Message deleted.",
+        ephemeral=True,
+    )
