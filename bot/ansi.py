@@ -64,7 +64,7 @@ def approximate_ansi(string: str):
     def replace_color(match: re.Match[str]) -> str:
         m = match.group().split(";")
 
-        is_bold = m[0] == "\x1b1"
+        is_bold = m[0] == "\x1b[1"
 
         if len(m) >= 2:
             rgb: tuple[int, int, int] | str
