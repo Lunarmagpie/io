@@ -57,9 +57,7 @@ def approximate_ansi(string: str):
     def replace_color(match: re.Match[str]) -> str:
         m = match.group().split(";")
 
-        is_bold = m[0] == "\x1b[1"
-
-        if len(m) >= 2:
+        if len(m) >= 3:
             rgb: tuple[int, int, int] | str
             if m[1] == "5":
                 # 8 Bit
@@ -68,7 +66,7 @@ def approximate_ansi(string: str):
                 # 24 Bit
                 rgb = tuple(map(int, (m[2], m[3], m[4].removesuffix("m"))))
             else:
-                return ";".join(m)
+                raise ValueError("The ANSI was not valid")
 
             if not isinstance(rgb, str):
                 closest = min(color_map.keys(), key=lambda x: math.dist(rgb, x))
@@ -76,10 +74,7 @@ def approximate_ansi(string: str):
             else:
                 color = rgb
 
-            if is_bold:
-                return f"\x1b[1;{color}m"
-            else:
-                return f"\x1b[{color}m"
+            return f"\x1b[1;{color}m"
 
         else:
             # ansi must be 3 or 4 bit
