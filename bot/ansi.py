@@ -54,10 +54,6 @@ ansi_escape_regex = re.compile(
 
 
 def approximate_ansi(string: str):
-    # Regex pattern to match ANSI escape sequences
-
-    # Dictionary of 24-bit ANSI color codes and their approximate 3/4-bit counterparts
-
     def replace_color(match: re.Match[str]) -> str:
         m = match.group().split(";")
 
