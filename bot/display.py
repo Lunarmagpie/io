@@ -67,6 +67,8 @@ class TextDisplay:
             cleaner = self.code.replace("\x1b[K", "")
             # Discord doesn't understand this alias.
             cleaner = cleaner.replace("\x1b[m", "\x1b[0m")
+            # Discord doesn't understand this either.
+            cleaner = cleaner.replace("\x1b[01m", "\x1b[1m")
 
             out += f"\n```ansi\n{approximate_ansi(cleaner)}\n```"
 
