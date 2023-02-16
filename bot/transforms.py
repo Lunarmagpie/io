@@ -3,6 +3,7 @@ import re
 
 JAVA_PUBLIC_CLASS_REGEX = re.compile(r"public\s+class")
 RUST_FN_REGEX = re.compile(r"fn\s+main\s*\(\s*\)")
+SAMARIUM_FN_REGEX = re.compile(r"=>\s+\*")
 
 
 def transform_code(lang: str, code: str) -> str:
@@ -19,6 +20,11 @@ def transform_code(lang: str, code: str) -> str:
         case "rust":
             if not RUST_FN_REGEX.match(code):
                 return "fn main() {\n" f"{code}\n" "}"
+            return code
+
+        case "samarium":
+            if not SAMARIUM_FN_REGEX.match(code):
+                return "=> * {\n" f"{code}\n" "}"
             return code
 
         case _:
