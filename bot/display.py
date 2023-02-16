@@ -5,8 +5,7 @@ import typing as t
 
 import hikari
 
-from bot.ansi import approximate_ansi
-
+import dahlia
 
 class _EMPTY:
     def __bool__(self) -> t.Literal[False]:
@@ -67,7 +66,7 @@ class TextDisplay:
             # Discord doesn't understand this either.
             cleaner = cleaner.replace("\x1b[01m", "\x1b[1m")
 
-            out += f"\n```ansi\n{approximate_ansi(cleaner)}\n```"
+            out += f"\n```ansi\n{dahlia.quantize_ansi(cleaner, to=3)}\n```"
 
         if self.code is None:
             out += f"\n```\nNo output```"
