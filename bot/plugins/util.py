@@ -5,6 +5,7 @@ import hikari
 import config
 from bot.buttons import delete_button
 from bot.display import EmbedBuilder
+from bot.message_container import bot_messages
 from bot.utils import Plugin
 
 plugin = Plugin()
@@ -65,6 +66,20 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
 @plugin.include
 @crescent.message_command(name="Delete")
 async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
+    data = bot_messages.get(message.id)
+
+    if not data:
+        await ctx.respond("This message can not be deleted.")
+        return
+
+    _user_message, user_id = data
+
+    if not user_id == ctx.user.id:
+        await ctx.respond(
+            "Only the person that used the command can delete the message."
+        )
+        return
+
     await message.delete()
 
     await ctx.respond(
