@@ -1,6 +1,8 @@
 import re
 
-RUST_FN_REGEX = re.compile(r"fn\s*main\s*\(\s*\)")
+
+JAVA_PUBLIC_CLASS_REGEX = re.compile(r"public\s+class")
+RUST_FN_REGEX = re.compile(r"fn\s+main\s*\(\s*\)")
 
 
 def transform_code(lang: str, code: str) -> str:
@@ -10,7 +12,9 @@ def transform_code(lang: str, code: str) -> str:
 
     match lang:
         case "java":
-            return code.replace("public class", "class")
+            if code.strip().startswith("public"):
+                return JAVA_PUBLIC_CLASS_REGEX.sub("class", code, count=1)
+            return code
 
         case "rust":
             if not RUST_FN_REGEX.match(code):
