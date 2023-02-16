@@ -13,8 +13,8 @@ HELP_MESSAGE = (
     f"Hi! My name is {config.NAME}, and my job is to run code."
     "\nYou can run the code in a message with a code block code by using the"
     " `Run Code` message command. Alternatively you can prefix your message with"
-    " `./run`. Assembly can be inspected with the `Assembly` command or the"
-    " `./asm` message prefix."
+    f" `{config.PREFIX}run`. Assembly can be inspected with the `Assembly` command or the"
+    f" `{config.PREFIX}asm` message prefix."
 )
 
 
