@@ -3,9 +3,9 @@ __all__: list[str] = ["EmbedBuilder"]
 import dataclasses
 import typing as t
 
+import dahlia
 import hikari
 
-import dahlia
 
 class _EMPTY:
     def __bool__(self) -> t.Literal[False]:
