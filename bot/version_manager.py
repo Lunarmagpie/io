@@ -5,7 +5,7 @@ import collections
 import dataclasses
 import enum
 import typing as t
-from result import Result, Err, Ok
+from result import Result, Err
 
 from bot import godbolt, piston
 from bot.response import RunResponse, AsmResponse
@@ -166,14 +166,15 @@ class VersionManager:
 
             await asyncio.sleep(60 * 5)
 
-    def _find_version(
-        self, lang: str, version: str | None = None
-    ) -> Result[Language, str]:
+    def find_version(self, lang: str, version: str | None = None) -> Language | None:
         versions = self.langs[lang]
 
         language: Language
 
-        if not version:
+        if not versions:
+            return None
+
+        if not version and versions:
             language = versions[0]
         else:
             for i in versions:
@@ -181,53 +182,40 @@ class VersionManager:
                     language = i
                     break
             else:
-                return Err(f"No version `{version}` found for language `{lang}`.")
+                return None
 
-        return Ok(language)
-
-    def find_version_unsafe(self, lang: str, version: str | None) -> Language:
-        version_ = self._find_version(lang, version).value
-        assert isinstance(version_, Language)
-        return version_
+        return language
 
     async def execute(
         self, lang: str, code: str, version: str | None = None
     ) -> Result[RunResponse, str]:
-        language = self._find_version(lang, version=version)
+        language = self.find_version(lang, version=version)
 
-        if isinstance(language, Err):
-            return language
+        if not language:
+            return Err("No matching language found.")
 
-        match language.value.provider:
+        match language.provider:
             case Provider.GODBOLT:
-                assert (
-                    language.value.internal_id
-                ), "GODBOLT langs should have an internal ID"
+                assert language.internal_id, "GODBOLT langs should have an internal ID"
                 return await self.godbot.execute(
-                    language.value.name, language.value.internal_id, code
+                    language.name, language.internal_id, code
                 )
             case Provider.PISTON:
-                return await self.piston.execute(
-                    language.value.name, language.value.version, code
-                )
+                return await self.piston.execute(language.name, language.version, code)
 
     async def compile(
         self, lang: str, code: str, version: str | None = None
     ) -> Result[AsmResponse, str]:
-        language = self._find_version(lang, version=version)
+        language = self.find_version(lang, version=version)
 
-        if isinstance(language, Err):
-            return language
+        if not language:
+            return Err("No matching languag found")
 
-        match language.value.provider:
+        match language.provider:
             case Provider.GODBOLT:
-                assert (
-                    language.value.internal_id
-                ), "GODBOLT langs should have an internal ID"
+                assert language.internal_id, "GODBOLT langs should have an internal ID"
                 return await self.godbot.compile(
-                    language.value.name, language.value.internal_id, code
+                    language.name, language.internal_id, code
                 )
             case Provider.PISTON:
-                return Err(
-                    f"ASM inspection is not supported for {language.value.name}."
-                )
+                return Err(f"ASM inspection is not supported for {language.name}.")

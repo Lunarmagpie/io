@@ -2,7 +2,7 @@ import crescent
 import hikari
 from result import Err
 
-from bot.display import EMBED_TITLE, TextDisplay
+from bot.display import TextDisplay
 from bot.message_container import MessageContainer
 from bot.utils import Plugin
 from bot.version_manager import Language
@@ -20,13 +20,13 @@ class Container(MessageContainer):
 
         if isinstance(result, Err):
             return TextDisplay(
-                title=EMBED_TITLE.CODE_RUNTIME_ERROR,
+                error="There was an error while running your code!",
                 code=result.value,
             )
 
         if result.value.code != 0:
             return TextDisplay(
-                title=EMBED_TITLE.CODE_RUNTIME_ERROR,
+                error="There was an error while running your code!",
                 code=result.value.stderr,
             )
 
@@ -44,8 +44,8 @@ class Container(MessageContainer):
         return plugin.model.versions.langs[lang]
 
     @staticmethod
-    def get_version(lang: str, version: str | None) -> Language:
-        return plugin.model.versions.find_version_unsafe(lang, version)
+    def get_version(lang: str, version: str | None) -> Language | None:
+        return plugin.model.versions.find_version(lang, version)
 
 
 @plugin.load_hook

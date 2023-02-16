@@ -1,7 +1,6 @@
-__all__: list[str] = ["EmbedBuilder", "EMBED_TITLE"]
+__all__: list[str] = ["EmbedBuilder"]
 
 import dataclasses
-import enum
 import typing as t
 
 import hikari
@@ -17,19 +16,13 @@ class _EMPTY:
 _empty = _EMPTY()
 
 
-class EMBED_TITLE(enum.StrEnum):
-    USER_ERROR = "❌ The was an error!"
-    CODE_RUNTIME_ERROR = "❌ There was an error while running your code!"
-    CODE_COMPILE_ERROR = "❌ There was an error while compiling your code!"
-
-
 @dataclasses.dataclass(slots=True)
 class EmbedBuilder:
     title: str | None = None
     desc: str | None = None
     author: hikari.User | None = None
 
-    def set_title(self, title: EMBED_TITLE | str) -> t.Self:
+    def set_title(self, title: str) -> t.Self:
         self.title = title
         return self
 
@@ -53,6 +46,7 @@ class EmbedBuilder:
 @dataclasses.dataclass(slots=True)
 class TextDisplay:
     title: str | None | _EMPTY = _empty
+    error: str | None | _EMPTY = _empty
     description: str | None | _EMPTY = _empty
     code: str | None | _EMPTY = _empty
 
@@ -61,6 +55,9 @@ class TextDisplay:
 
         if self.description:
             out += f"\n{self.description}"
+
+        if self.error:
+            out += f"❌ {self.error}"
 
         if self.code:
             # GCC is stupid.

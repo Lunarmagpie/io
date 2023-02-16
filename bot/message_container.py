@@ -12,8 +12,8 @@ from result import Err, Ok, Result
 
 import config
 from bot.display import TextDisplay
-from bot.version_manager import Language
 from bot.transforms import transform_code
+from bot.version_manager import Language
 
 
 class Code(t.NamedTuple):
@@ -87,20 +87,34 @@ class MessageContainer(abc.ABC):
 
         lang = res.value.lang
 
+        if not lang:
+            return Err(
+                (
+                    TextDisplay(
+                        error=f"The code can't be run because no language was specified."
+                    ),
+                    hikari.UNDEFINED,
+                )
+            )
+
         if old_lang and old_lang != lang:
             version = None
 
-        if not lang:
-            text = TextDisplay(
-                description="No language was specified. The code can't be run.",
+        language = self.get_version(lang, version)
+        if not language:
+            return Err(
+                (
+                    TextDisplay(error=f"Language `{lang}` is not supported."),
+                    hikari.UNDEFINED,
+                )
             )
-        else:
-            text = await self.with_code(
-                message,
-                lang,
-                self.get_version(lang, version).version,
-                transform_code(lang, res.value.code),
-            )
+
+        text = await self.with_code(
+            message,
+            lang,
+            language.version,
+            transform_code(lang, res.value.code),
+        )
 
         return Ok(
             (
@@ -110,7 +124,7 @@ class MessageContainer(abc.ABC):
                         author,
                         message,
                         lang,
-                        self.get_version(lang, version).version,
+                        language.version,
                     )
                 ),
             )
@@ -212,17 +226,22 @@ class MessageContainer(abc.ABC):
 
         # We can grab the selected version from the components.
         # This makes it so I don't have to cache it.
-        option = next(
-            filter(
-                lambda x: x.is_default,
-                t.cast(
-                    hikari.components.TextSelectMenuComponent,
-                    bot_message.components[0].components[0],
-                ).options,
-            )
-        )
+        components = bot_message.components
 
-        lang, version = option.value.split(":")
+        if components:
+            option = next(
+                filter(
+                    lambda x: x.is_default,
+                    t.cast(
+                        hikari.components.TextSelectMenuComponent,
+                        components[0].components[0],
+                    ).options,
+                )
+            )
+
+            lang, version = option.value.split(":")
+        else:
+            lang, version = None, None
 
         text, component = (
             await self.with_code_wrapper(
@@ -237,7 +256,7 @@ class MessageContainer(abc.ABC):
             bot_message,
             content=text.format(),
             mentions_reply=False,
-            component=component,
+            component=component or None,
         )
 
     async def on_delete(self, event: hikari.MessageDeleteEvent) -> None:
@@ -280,7 +299,7 @@ class MessageContainer(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def get_version(lang: str, version: str | None) -> Language:
+    def get_version(lang: str, version: str | None) -> Language | None:
         ...
 
 
