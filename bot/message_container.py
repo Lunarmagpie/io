@@ -13,6 +13,7 @@ from result import Err, Ok, Result
 import config
 from bot.display import TextDisplay
 from bot.version_manager import Language
+from bot.transforms import transform_code
 
 
 class Code(t.NamedTuple):
@@ -98,7 +99,7 @@ class MessageContainer(abc.ABC):
                 message,
                 lang,
                 self.get_version(lang, version).version,
-                res.value.code,
+                transform_code(lang, res.value.code),
             )
 
         return Ok(
