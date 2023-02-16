@@ -71,3 +71,25 @@ async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
         content="Message deleted.",
         ephemeral=True,
     )
+
+
+@plugin.include
+@crescent.message_command(name="Raw Content")
+async def raw_content(ctx: crescent.Context, message: hikari.Message) -> None:
+    if not message.content:
+        await ctx.respond(
+            "Can not send raw content because this message is empty.", ephemeral=True
+        )
+        return
+
+    content = (
+        message.content.replace("`", r"\`")
+        .replace("*", r"\*")
+        .replace("_", r"\_")
+        .replace(">", r"\>")
+    )
+
+    await ctx.respond(
+        content=content,
+        ephemeral=True,
+    )
