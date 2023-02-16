@@ -77,7 +77,7 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
             ),
         ),
         reply=event.message,
-        mentions_reply=True,
+        mentions_reply=False,
     )
 
 
