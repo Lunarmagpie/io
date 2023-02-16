@@ -74,7 +74,7 @@ async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
 
 
 @plugin.include
-@crescent.message_command(name="Raw Content")
+@crescent.message_command(name="Get Raw Content")
 async def raw_content(ctx: crescent.Context, message: hikari.Message) -> None:
     if not message.content:
         await ctx.respond(
