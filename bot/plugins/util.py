@@ -108,3 +108,35 @@ async def raw_content(ctx: crescent.Context, message: hikari.Message) -> None:
         content=content,
         ephemeral=True,
     )
+
+
+@plugin.include
+@crescent.command
+async def credits(ctx: crescent.Context):
+    embed = EmbedBuilder()
+
+    embed.set_title("Credits")
+
+    embed.set_description(
+        "Lunarmagpie#0001 for developing the bot."
+        "\nEndercheif#0187 hosting the piston instance and adding languages."
+        "\nGodbolt API for allowing people to run code for free"
+    )
+
+    await ctx.respond(
+        embed=embed.build(),
+        component=await flare.Row(
+            flare.LinkButton(
+                "https://github.com/Lunarmagpie/code-runner", label="Source Code"
+            ),
+            flare.LinkButton("https://github.com/Endercheif/piston", label="Piston"),
+            flare.LinkButton(
+                "https://github.com/compiler-explorer/compiler-explorer/",
+                label="Compiler Explorer",
+            ),
+            flare.LinkButton(
+                "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot",
+                label="Invite",
+            ),
+        ),
+    )
