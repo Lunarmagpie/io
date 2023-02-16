@@ -165,8 +165,8 @@ class MessageContainer(abc.ABC):
         if not event.is_human:
             return
 
-        if not event.message.content or not event.message.content.startswith(
-            "./" + prefix
+        if not event.message.content or not event.message.content.lower().startswith(
+            config.PREFIX + prefix
         ):
             return
 
