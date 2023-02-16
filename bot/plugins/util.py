@@ -34,7 +34,16 @@ async def languages(ctx: crescent.Context) -> None:
 async def help(ctx: crescent.Context) -> None:
     await ctx.respond(
         HELP_MESSAGE,
-        component=await flare.Row(delete_button(ctx.user.id)),
+        component=await flare.Row(
+            delete_button(ctx.user.id),
+            flare.LinkButton(
+                "https://github.com/Lunarmagpie/code-runner", label="Source Code"
+            ),
+            flare.LinkButton(
+                "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot",
+                label="Invite",
+            ),
+        ),
     )
 
 
@@ -57,7 +66,16 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
 
     await event.message.respond(
         HELP_MESSAGE,
-        component=await flare.Row(delete_button(event.author.id)),
+        component=await flare.Row(
+            delete_button(event.author.id),
+            flare.LinkButton(
+                "https://github.com/Lunarmagpie/code-runner", label="Source Code"
+            ),
+            flare.LinkButton(
+                "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot",
+                label="Invite",
+            ),
+        ),
         reply=event.message,
         mentions_reply=True,
     )
@@ -126,6 +144,7 @@ async def credits(ctx: crescent.Context):
     await ctx.respond(
         embed=embed.build(),
         component=await flare.Row(
+            delete_button(ctx.user.id),
             flare.LinkButton(
                 "https://github.com/Lunarmagpie/code-runner", label="Source Code"
             ),
@@ -133,10 +152,6 @@ async def credits(ctx: crescent.Context):
             flare.LinkButton(
                 "https://github.com/compiler-explorer/compiler-explorer/",
                 label="Compiler Explorer",
-            ),
-            flare.LinkButton(
-                "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot",
-                label="Invite",
             ),
         ),
     )
