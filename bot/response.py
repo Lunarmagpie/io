@@ -14,7 +14,7 @@ class RunResponse:
 
 
 @dataclasses.dataclass(slots=True)
-class AsmResponse:
+class ASMResponse:
     provider: str
     asm: str
     stderr: str | None

@@ -8,7 +8,7 @@ import typing as t
 from result import Result, Err
 
 from bot import godbolt, piston
-from bot.response import RunResponse, AsmResponse
+from bot.response import RunResponse, ASMResponse
 
 
 class Provider(enum.Enum):
@@ -205,7 +205,7 @@ class VersionManager:
 
     async def compile(
         self, lang: str, code: str, version: str | None = None
-    ) -> Result[AsmResponse, str]:
+    ) -> Result[ASMResponse, str]:
         language = self.find_version(lang, version=version)
 
         if not language:
