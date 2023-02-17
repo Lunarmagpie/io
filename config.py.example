@@ -19,8 +19,8 @@ GODBOLT = "https://godbolt.org/api/"
 PISTON = "https://emkc.org/api/v2/piston/"
 
 # A guild to put a special /restart command in, available to anyone.
-OWNER_GUILD = 750862883075915826
+OWNER_GUILD = 123456789123456789
 
 # Emoji used loading. The one I use in is `resources/loading.gif`.
 import hikari
-LOADING_EMOJI = hikari.Emoji.parse("<a:loading4:1075127045719343225>")
+LOADING_EMOJI = hikari.Emoji.parse("<a:loading:123456789>")
