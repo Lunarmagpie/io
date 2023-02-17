@@ -114,8 +114,8 @@ async def credits(ctx: crescent.Context):
     embed.set_title("Credits")
 
     embed.set_description(
-        "Lunarmagpie#0001 for developing the bot."
-        "\nEndercheif#0187 hosting the piston instance and adding languages."
+        "(Lunarmagpie#0001)[https://github.com/Lunarmagpie/] for developing the bot."
+        "\n[Endercheif#0187](https://github.com/Endercheif/) hosting the piston instance and adding languages."
         "\nGodbolt API for allowing people to run code for free"
         "\nTech Stack: [hikari](https://github.com/hikari-py/hikari)"
         ", [hikari-crescent](https://github.com/hikari-crescent/hikari-crescent)."
@@ -127,11 +127,6 @@ async def credits(ctx: crescent.Context):
             delete_button(ctx.user.id),
             flare.LinkButton(
                 "https://github.com/Lunarmagpie/code-runner", label="Source Code"
-            ),
-            flare.LinkButton("https://github.com/Endercheif/piston", label="Piston"),
-            flare.LinkButton(
-                "https://github.com/compiler-explorer/compiler-explorer/",
-                label="Compiler Explorer",
             ),
         ),
     )
