@@ -10,13 +10,27 @@ from bot.utils import Plugin
 
 plugin = Plugin()
 
-HELP_MESSAGE = (
-    f"Hi! My name is {config.NAME}, and my job is to run code."
-    "\nYou can run the code in a message with a code block code by using the"
-    " `Run Code` message command. Alternatively you can prefix your message with"
-    f" `{config.PREFIX}run`. Assembly can be inspected with the `Assembly` command or the"
-    f" `{config.PREFIX}asm` message prefix."
-)
+HELP_EMBEDS = [
+    EmbedBuilder()
+    .set_description(
+        f"Hi! My name is {config.NAME}, and my job is to run code."
+        "\n I can run any code inside of code blocks:"
+        "\n\\`\\`\\`<language-name>"
+        "\n<your code here>"
+        "\n\\`\\`\\`"
+    )
+    .build(),
+    EmbedBuilder()
+    .set_description(
+        f"\n\\* Running code - Use the `Run Code` message command or start your message with `{config.PREFIX}run`."
+        f"\n\\* View Assembly - Use the `Assembly` message command or start your message with `{config.PREFIX}asm`."
+        f"\n\\* Delete my response - Use the `Delete` message command."
+        "\n"
+        "\nYou can use message commands by right clicking on a message,"
+        "selecting the `Apps` subcatagory, then finding the command from there."
+    )
+    .build(),
+]
 
 
 @plugin.include
@@ -33,7 +47,7 @@ async def languages(ctx: crescent.Context) -> None:
 @crescent.command
 async def help(ctx: crescent.Context) -> None:
     await ctx.respond(
-        HELP_MESSAGE,
+        embeds=HELP_EMBEDS,
         component=await flare.Row(
             delete_button(ctx.user.id),
             flare.LinkButton(config.REPO_LINK, label="Source Code"),
@@ -60,7 +74,7 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         return
 
     await event.message.respond(
-        HELP_MESSAGE,
+        embeds=HELP_EMBEDS,
         component=await flare.Row(
             delete_button(event.author.id),
             flare.LinkButton(config.REPO_LINK, label="Source Code"),
