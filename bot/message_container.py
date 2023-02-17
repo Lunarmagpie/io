@@ -56,7 +56,7 @@ class MessageContainer(abc.ABC):
         message_lines = message.splitlines()
 
         for i, line in enumerate(message_lines):
-            if start_of_code is not None and end_of_code is not None:
+            if not (start_of_code is None or end_of_code is None):
                 continue
 
             if line.startswith("```"):
