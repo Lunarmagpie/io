@@ -18,10 +18,6 @@ HELP_MESSAGE = (
     f" `{config.PREFIX}asm` message prefix."
 )
 
-REPO_LINK = "https://github.com/Lunarmagpie/io"
-
-INVITE_URL = "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot"
-
 
 @plugin.include
 @crescent.command(description="List the supported language runtimes.")
@@ -40,8 +36,8 @@ async def help(ctx: crescent.Context) -> None:
         HELP_MESSAGE,
         component=await flare.Row(
             delete_button(ctx.user.id),
-            flare.LinkButton(REPO_LINK, label="Source Code"),
-            flare.LinkButton(INVITE_URL, label="Invite"),
+            flare.LinkButton(config.REPO_LINK, label="Source Code"),
+            flare.LinkButton(config.INVITE_URL, label="Invite"),
         ),
     )
 
@@ -67,8 +63,8 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         HELP_MESSAGE,
         component=await flare.Row(
             delete_button(event.author.id),
-            flare.LinkButton(REPO_LINK, label="Source Code"),
-            flare.LinkButton(INVITE_URL, label="Invite"),
+            flare.LinkButton(config.REPO_LINK, label="Source Code"),
+            flare.LinkButton(config.INVITE_URL, label="Invite"),
         ),
         reply=event.message,
         mentions_reply=False,
@@ -120,6 +116,6 @@ async def credits(ctx: crescent.Context):
         embed=embed.build(),
         component=await flare.Row(
             delete_button(ctx.user.id),
-            flare.LinkButton(REPO_LINK, label="Source Code"),
+            flare.LinkButton(config.REPO_LINK, label="Source Code"),
         ),
     )
