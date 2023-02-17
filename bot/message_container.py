@@ -190,8 +190,20 @@ class MessageContainer(abc.ABC):
         if not event.is_human:
             return
 
-        if not event.message.content or not event.message.content.lower().startswith(
-            config.PREFIX + prefix
+        me = self.app.get_me()
+
+        if not me:
+            return
+
+        if not event.message.content:
+            return
+
+        content = event.message.content.lower()
+
+        if not (
+            content.startswith(config.PREFIX + prefix)
+            or content.startswith(me.mention + prefix)
+            or content.startswith(me.mention + "/" + prefix)
         ):
             return
 
