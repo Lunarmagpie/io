@@ -39,32 +39,32 @@ class Language:
         return self.name == other.name and self.version == other.version
 
 
-def _sort_langs_inplace(l: list[Language]) -> None:
+def _sort_langs_inplace(langs: list[Language]) -> None:
     def safe_int(i: str) -> int | None:
         if i.isnumeric():
             return int(i)
         return 0
 
-    def f(l: Language) -> tuple[int, int, int]:
-        if not "." in l.version:
+    def f(lang: Language) -> tuple[int, int, int]:
+        if not "." in lang.version:
             return (0, 0, 0)
 
-        semver = l.version.split(".")
+        semver = lang.version.split(".")
 
         semver[-1] = semver[-1].split("-")[0]
 
         return tuple(map(safe_int, semver))  # type: ignore
 
-    l.sort(key=f, reverse=True)
+    langs.sort(key=f, reverse=True)
 
 
-def latest_of_type(l: list[Language], name: str, amount: int):
-    """`l` is a sorted list."""
+def latest_of_type(langs: list[Language], name: str, amount: int):
+    """`langs` is a sorted list."""
     out: list[Language] = []
 
-    for i in l:
-        if i.full_name.startswith(name):
-            out += [i]
+    for lang in langs:
+        if lang.full_name.startswith(name):
+            out += [lang]
 
         if len(out) == amount:
             break
