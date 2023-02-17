@@ -36,13 +36,8 @@ async def help(ctx: crescent.Context) -> None:
         HELP_MESSAGE,
         component=await flare.Row(
             delete_button(ctx.user.id),
-            flare.LinkButton(
-                "https://github.com/Lunarmagpie/code-runner", label="Source Code"
-            ),
-            flare.LinkButton(
-                "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot",
-                label="Invite",
-            ),
+            flare.LinkButton(config.REPO_LINK, label="Source Code"),
+            flare.LinkButton(config.INVITE_LINK, label="Invite"),
         ),
     )
 
@@ -68,13 +63,8 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         HELP_MESSAGE,
         component=await flare.Row(
             delete_button(event.author.id),
-            flare.LinkButton(
-                "https://github.com/Lunarmagpie/code-runner", label="Source Code"
-            ),
-            flare.LinkButton(
-                "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot",
-                label="Invite",
-            ),
+            flare.LinkButton(config.REPO_LINK, label="Source Code"),
+            flare.LinkButton(config.INVITE_LINK, label="Invite"),
         ),
         reply=event.message,
         mentions_reply=False,
@@ -126,8 +116,6 @@ async def credits(ctx: crescent.Context):
         embed=embed.build(),
         component=await flare.Row(
             delete_button(ctx.user.id),
-            flare.LinkButton(
-                "https://github.com/Lunarmagpie/code-runner", label="Source Code"
-            ),
+            flare.LinkButton(config.REPO_LINK, label="Source Code"),
         ),
     )

@@ -5,7 +5,7 @@ from result import Err, Ok, Result
 
 import config
 from bot.godbolt.models import Compiler, Language
-from bot.response import AsmResponse, RunResponse
+from bot.response import ASMResponse, RunResponse
 
 __all__: list[str] = ["Client"]
 
@@ -53,7 +53,7 @@ class Client:
 
     async def compile(
         self, lang: str, compiler_id: str, code: str
-    ) -> Result[AsmResponse, str]:
+    ) -> Result[ASMResponse, str]:
         async with self.aiohttp.post(
             config.GODBOLT + f"/compiler/{compiler_id}/compile",
             json={
@@ -86,7 +86,7 @@ class Client:
 
             j = await resp.json()
             return Ok(
-                AsmResponse(
+                ASMResponse(
                     provider="godbolt",
                     asm=t.cast(str, _getTextOrNone(j["asm"])),
                     stderr=_getTextOrNone(j["stderr"]),

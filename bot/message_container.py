@@ -32,7 +32,7 @@ bot_messages: t.MutableMapping[
 ] = cachetools.TTLCache(
     maxsize=10000, ttl=datetime.timedelta(minutes=20).total_seconds()
 )
-"""Dictionary of bot messages to (User Message, User that used it)"""
+"""Dictionary of bot messages to (User Message, User that used it)."""
 
 
 class MessageContainer(abc.ABC):
@@ -56,7 +56,7 @@ class MessageContainer(abc.ABC):
         message_lines = message.splitlines()
 
         for i, line in enumerate(message_lines):
-            if start_of_code is not None and end_of_code is not None:
+            if not (start_of_code is None or end_of_code is None):
                 continue
 
             if line.startswith("```"):

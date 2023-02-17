@@ -8,7 +8,7 @@ import typing as t
 from result import Result, Err
 
 from bot import godbolt, piston
-from bot.response import RunResponse, AsmResponse
+from bot.response import RunResponse, ASMResponse
 
 
 class Provider(enum.Enum):
@@ -25,7 +25,7 @@ class Language:
     full_name: str
     """The name of the language with the version."""
     version: str
-    """The semver version."""
+    """The SemVer version."""
 
     is_executable: bool
     """True if the language is executable."""
@@ -36,35 +36,35 @@ class Language:
     """Internal ID used by API to refer to this language."""
 
     def __eq__(self, other: t.Any) -> bool:
-        return self.name == other.name and self.version == other.version
+        return (self.name, self.version) == (other.name, other.version)
 
 
-def _sort_langs_inplace(l: list[Language]) -> None:
+def _sort_langs_inplace(langs: list[Language]) -> None:
     def safe_int(i: str) -> int | None:
         if i.isnumeric():
             return int(i)
         return 0
 
-    def f(l: Language) -> tuple[int, int, int]:
-        if not "." in l.version:
+    def f(lang: Language) -> tuple[int, int, int]:
+        if not "." in lang.version:
             return (0, 0, 0)
 
-        semver = l.version.split(".")
+        semver = lang.version.split(".")
 
         semver[-1] = semver[-1].split("-")[0]
 
         return tuple(map(safe_int, semver))  # type: ignore
 
-    l.sort(key=f, reverse=True)
+    langs.sort(key=f, reverse=True)
 
 
-def latest_of_type(l: list[Language], name: str, amount: int):
-    """`l` is a sorted list."""
+def latest_of_type(langs: list[Language], name: str, amount: int):
+    """`langs` is a sorted list."""
     out: list[Language] = []
 
-    for i in l:
-        if i.full_name.startswith(name):
-            out += [i]
+    for lang in langs:
+        if lang.full_name.startswith(name):
+            out += [lang]
 
         if len(out) == amount:
             break
@@ -80,7 +80,7 @@ class VersionManager:
         self._piston: piston.Client | None = None
 
         self.langs: dict[str, list[Language]] = {}
-        """Dictionary of language names to Language objects"""
+        """Dictionary of language names to Language objects."""
 
     @classmethod
     async def build(
@@ -149,7 +149,7 @@ class VersionManager:
                 self.langs["c"], "x86-64 gcc", 2,
             ) + latest_of_type(
                 self.langs["c"], "x86-64 icx", 1,
-            )+ latest_of_type(
+            ) + latest_of_type(
                 self.langs["c"], "x86-64 icc", 1,
             )
 
@@ -159,7 +159,7 @@ class VersionManager:
                 self.langs["c++"], "x86-64 gcc", 2,
             ) + latest_of_type(
                 self.langs["c++"], "x86-64 icx", 1,
-            )+ latest_of_type(
+            ) + latest_of_type(
                 self.langs["c++"], "x86-64 icc", 1,
             )
             # fmt: on
@@ -196,7 +196,7 @@ class VersionManager:
 
         match language.provider:
             case Provider.GODBOLT:
-                assert language.internal_id, "GODBOLT langs should have an internal ID"
+                assert language.internal_id, "GODBOLT langs should have an internal ID."
                 return await self.godbot.execute(
                     language.name, language.internal_id, code
                 )
@@ -205,15 +205,15 @@ class VersionManager:
 
     async def compile(
         self, lang: str, code: str, version: str | None = None
-    ) -> Result[AsmResponse, str]:
+    ) -> Result[ASMResponse, str]:
         language = self.find_version(lang, version=version)
 
         if not language:
-            return Err("No matching languag found")
+            return Err("No matching language found.")
 
         match language.provider:
             case Provider.GODBOLT:
-                assert language.internal_id, "GODBOLT langs should have an internal ID"
+                assert language.internal_id, "GODBOLT langs should have an internal ID."
                 return await self.godbot.compile(
                     language.name, language.internal_id, code
                 )

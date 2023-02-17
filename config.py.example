@@ -6,6 +6,12 @@ NAME = "Io"
 # All message commands must be prefixed with this.
 PREFIX = "io/"
 
+# Bot's source code repository
+REPO_LINK = "https://github.com/Lunarmagpie/io"
+
+# Bot invite link
+INVITE_LINK = "https://discord.com/api/oauth2/authorize?client_id=1073771658906701954&permissions=346176&scope=bot"
+
 # Public URL For Godbolt.
 GODBOLT = "https://godbolt.org/api/"
 
