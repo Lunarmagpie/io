@@ -1,0 +1,20 @@
+TOKEN="YOUR_BOT_TOKEN"
+
+# Bot name used in commands.
+NAME = "Io"
+
+# All message commands must be prefixed with this.
+PREFIX = "io/"
+
+# Public URL For Godbolt.
+GODBOLT = "https://godbolt.org/api/"
+
+# Public URL for Piston.
+PISTON = "https://emkc.org/api/v2/piston/"
+
+# A guild to put a special /restart command in, available to anyone.
+OWNER_GUILD = 750862883075915826
+
+# Emoji used loading. The one I use in is `resources/loading.gif`.
+import hikari
+LOADING_EMOJI = hikari.Emoji.parse("<a:loading4:1075127045719343225>")
