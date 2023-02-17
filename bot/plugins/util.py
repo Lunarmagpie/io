@@ -139,6 +139,8 @@ async def credits(ctx: crescent.Context):
         "Lunarmagpie#0001 for developing the bot."
         "\nEndercheif#0187 hosting the piston instance and adding languages."
         "\nGodbolt API for allowing people to run code for free"
+        "\nTech Stack: [hikari](https://github.com/hikari-py/hikari)"
+        ", [hikari-crescent](https://github.com/hikari-crescent/hikari-crescent)."
     )
 
     await ctx.respond(
