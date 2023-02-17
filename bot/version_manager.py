@@ -36,7 +36,7 @@ class Language:
     """Internal ID used by API to refer to this language."""
 
     def __eq__(self, other: t.Any) -> bool:
-        return self.name == other.name and self.version == other.version
+        return (self.name, self.version) == (other.name, other.version)
 
 
 def _sort_langs_inplace(langs: list[Language]) -> None:
