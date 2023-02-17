@@ -25,7 +25,7 @@ class Language:
     full_name: str
     """The name of the language with the version."""
     version: str
-    """The semver version."""
+    """The SemVer version."""
 
     is_executable: bool
     """True if the language is executable."""
@@ -80,7 +80,7 @@ class VersionManager:
         self._piston: piston.Client | None = None
 
         self.langs: dict[str, list[Language]] = {}
-        """Dictionary of language names to Language objects"""
+        """Dictionary of language names to Language objects."""
 
     @classmethod
     async def build(
@@ -196,7 +196,7 @@ class VersionManager:
 
         match language.provider:
             case Provider.GODBOLT:
-                assert language.internal_id, "GODBOLT langs should have an internal ID"
+                assert language.internal_id, "GODBOLT langs should have an internal ID."
                 return await self.godbot.execute(
                     language.name, language.internal_id, code
                 )
@@ -209,11 +209,11 @@ class VersionManager:
         language = self.find_version(lang, version=version)
 
         if not language:
-            return Err("No matching languag found")
+            return Err("No matching language found.")
 
         match language.provider:
             case Provider.GODBOLT:
-                assert language.internal_id, "GODBOLT langs should have an internal ID"
+                assert language.internal_id, "GODBOLT langs should have an internal ID."
                 return await self.godbot.compile(
                     language.name, language.internal_id, code
                 )

@@ -32,7 +32,7 @@ bot_messages: t.MutableMapping[
 ] = cachetools.TTLCache(
     maxsize=10000, ttl=datetime.timedelta(minutes=20).total_seconds()
 )
-"""Dictionary of bot messages to (User Message, User that used it)"""
+"""Dictionary of bot messages to (User Message, User that used it)."""
 
 
 class MessageContainer(abc.ABC):
