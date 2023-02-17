@@ -10,7 +10,7 @@ from bot.response import ASMResponse, RunResponse
 __all__: list[str] = ["Client"]
 
 
-def _getTextOrNone(l: list[dict[str, str]]) -> str | None:
+def _get_text_or_none(l: list[dict[str, str]]) -> str | None:
     if not l:
         return None
 
@@ -88,8 +88,8 @@ class Client:
             return Ok(
                 ASMResponse(
                     provider="godbolt",
-                    asm=t.cast(str, _getTextOrNone(j["asm"])),
-                    stderr=_getTextOrNone(j["stderr"]),
+                    asm=t.cast(str, _get_text_or_none(j["asm"])),
+                    stderr=_get_text_or_none(j["stderr"]),
                     code=j["code"],
                 )
             )
@@ -125,9 +125,9 @@ class Client:
                 # Build failure
                 return Ok(
                     RunResponse(
-                        stdout=_getTextOrNone(j["stdout"]),
-                        stderr=_getTextOrNone(j["buildResult"]["stderr"]),
-                        output=_getTextOrNone(j["stdout"]),
+                        stdout=_get_text_or_none(j["stdout"]),
+                        stderr=_get_text_or_none(j["buildResult"]["stderr"]),
+                        output=_get_text_or_none(j["stdout"]),
                         signal=None,
                         provider="godbolt",
                         code=exit_code,
@@ -136,9 +136,9 @@ class Client:
             else:
                 return Ok(
                     RunResponse(
-                        stdout=_getTextOrNone(j["stdout"]),
-                        stderr=_getTextOrNone(j["stderr"]),
-                        output=_getTextOrNone(j["stdout"]),
+                        stdout=_get_text_or_none(j["stdout"]),
+                        stderr=_get_text_or_none(j["stderr"]),
+                        output=_get_text_or_none(j["stdout"]),
                         signal=None,
                         provider="godbolt",
                         code=j["code"],
