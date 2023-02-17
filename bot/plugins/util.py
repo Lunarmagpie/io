@@ -87,14 +87,15 @@ async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
     data = bot_messages.get(message.id)
 
     if not data:
-        await ctx.respond("This message can not be deleted.")
+        await ctx.respond("This message can not be deleted.", ephemeral=True)
         return
 
     _user_message, user_id = data
 
     if not user_id == ctx.user.id:
         await ctx.respond(
-            "Only the person that used the command can delete the message."
+            "Only the person that used the command can delete the message.",
+            ephemeral=True,
         )
         return
 
