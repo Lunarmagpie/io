@@ -22,3 +22,8 @@ The bot is built on [hikari](https://github.com/hikari-py/hikari) and [hikari-cr
 - Me for developing the bot
 - [@Endercheif](https://github.com/Endercheif/) for adding new lanagues to [piston](https://github.com/Endercheif/piston) and hosting.
 - [Compiler Explorer](https://github.com/compiler-explorer/compiler-explorer) for making an awesome API they let anyone use for free. 
+
+## Self Hosting
+
+Rename `config.py.example` to `config.py` and fill in the missing information.
+You can then use `docker compose up` to run the bot.
