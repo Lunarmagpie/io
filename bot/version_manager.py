@@ -149,7 +149,7 @@ class VersionManager:
                 self.langs["c"], "x86-64 gcc", 2,
             ) + latest_of_type(
                 self.langs["c"], "x86-64 icx", 1,
-            )+ latest_of_type(
+            ) + latest_of_type(
                 self.langs["c"], "x86-64 icc", 1,
             )
 
@@ -159,7 +159,7 @@ class VersionManager:
                 self.langs["c++"], "x86-64 gcc", 2,
             ) + latest_of_type(
                 self.langs["c++"], "x86-64 icx", 1,
-            )+ latest_of_type(
+            ) + latest_of_type(
                 self.langs["c++"], "x86-64 icc", 1,
             )
             # fmt: on
