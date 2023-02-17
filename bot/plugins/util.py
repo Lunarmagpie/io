@@ -37,7 +37,7 @@ async def help(ctx: crescent.Context) -> None:
         component=await flare.Row(
             delete_button(ctx.user.id),
             flare.LinkButton(config.REPO_LINK, label="Source Code"),
-            flare.LinkButton(config.INVITE_URL, label="Invite"),
+            flare.LinkButton(config.INVITE_LINK, label="Invite"),
         ),
     )
 
@@ -64,7 +64,7 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         component=await flare.Row(
             delete_button(event.author.id),
             flare.LinkButton(config.REPO_LINK, label="Source Code"),
-            flare.LinkButton(config.INVITE_URL, label="Invite"),
+            flare.LinkButton(config.INVITE_LINK, label="Invite"),
         ),
         reply=event.message,
         mentions_reply=False,
