@@ -129,7 +129,8 @@ async def credits(ctx: crescent.Context):
     embed.set_title("Credits")
 
     embed.set_description(
-        "[Lunarmagpie#0001](https://github.com/Lunarmagpie/) for developing the bot."
+        "Thank you to my creators!"
+        "\n[Lunarmagpie#0001](https://github.com/Lunarmagpie/) for developing me."
         "\n[Endercheif#0187](https://github.com/Endercheif/) hosting the piston instance and adding languages."
         "\nGodbolt API for allowing people to run code for free"
         "\nTech Stack: [hikari](https://github.com/hikari-py/hikari)"
