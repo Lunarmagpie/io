@@ -40,20 +40,25 @@ async def languages(ctx: crescent.Context) -> None:
 
     embed = EmbedBuilder().set_title("Supported Languages").set_description(out).build()
 
-    await ctx.respond(embed=embed)
+    resp = await ctx.respond(embed=embed, ensure_message=True)
+
+    bot_messages[resp.id] = (None, ctx.user.id)
 
 
 @plugin.include
 @crescent.command
 async def help(ctx: crescent.Context) -> None:
-    await ctx.respond(
+    resp = await ctx.respond(
         embeds=HELP_EMBEDS,
         component=await flare.Row(
             delete_button(ctx.user.id),
             flare.LinkButton(config.REPO_LINK, label="Source Code"),
             flare.LinkButton(config.INVITE_LINK, label="Invite"),
         ),
+        ensure_message=True,
     )
+
+    bot_messages[resp.id] = (None, ctx.user.id)
 
 
 @plugin.include
@@ -73,7 +78,7 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
     if me.mention not in event.message.content:
         return
 
-    await event.message.respond(
+    resp = await event.message.respond(
         embeds=HELP_EMBEDS,
         component=await flare.Row(
             delete_button(event.author.id),
@@ -84,6 +89,8 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         mentions_reply=False,
     )
 
+    bot_messages[resp.id] = (event.message.id, event.author.id)
+
 
 @plugin.include
 @crescent.message_command(name="Delete")
@@ -91,7 +98,10 @@ async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
     data = bot_messages.get(message.id)
 
     if not data:
-        await ctx.respond("This message can not be deleted.", ephemeral=True)
+        await ctx.respond(
+            "I can't delete this message because I don't know who created it.",
+            ephemeral=True,
+        )
         return
 
     _user_message, user_id = data
@@ -126,10 +136,13 @@ async def credits(ctx: crescent.Context):
         ", [hikari-crescent](https://github.com/hikari-crescent/hikari-crescent)."
     )
 
-    await ctx.respond(
+    resp = await ctx.respond(
         embed=embed.build(),
         component=await flare.Row(
             delete_button(ctx.user.id),
             flare.LinkButton(config.REPO_LINK, label="Source Code"),
         ),
+        ensure_message=True,
     )
+
+    bot_messages[resp.id] = (None, ctx.user.id)

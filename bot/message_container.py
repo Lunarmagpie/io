@@ -28,7 +28,7 @@ message_cache: t.MutableMapping[
 )
 """Dictionary of user messages to bot messages."""
 bot_messages: t.MutableMapping[
-    hikari.Snowflake, tuple[hikari.Snowflake, hikari.Snowflake]
+    hikari.Snowflake, tuple[hikari.Snowflake | None, hikari.Snowflake]
 ] = cachetools.TTLCache(
     maxsize=10000, ttl=datetime.timedelta(minutes=20).total_seconds()
 )
@@ -284,10 +284,10 @@ class MessageContainer(abc.ABC):
 
     async def on_delete(self, event: hikari.MessageDeleteEvent) -> None:
         data = bot_messages.get(event.message_id)
+        bot_messages.pop(event.message_id, None)
 
-        if data:
-            bot_messages.pop(event.message_id)
-            message_cache.pop(data[0])
+        if data and data[0]:
+            message_cache.pop(data[0], None)
 
     def get_select(
         self,
