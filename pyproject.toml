@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "code-runner"
+name = "io"
 version = "0.1.0"
 description = "A code running discord bot"
 authors = ["Lunarmagpie <bambolambo0@gmail.com>"]
 readme = "README.md"
-packages = [{ include = "code_runner" }]
+packages = [{ include = "bot" }]
 
 [tool.poetry.dependencies]
 python = "^3.11,<3.12"
