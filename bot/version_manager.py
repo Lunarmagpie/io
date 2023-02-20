@@ -96,7 +96,7 @@ class VersionManager:
         return self
 
     @property
-    def godbot(self) -> godbolt.Client:
+    def godbolt(self) -> godbolt.Client:
         assert self._godbolt
         return self._godbolt
 
@@ -107,12 +107,12 @@ class VersionManager:
 
     async def update(self):
         while True:
-            await self.godbot.update_data()
+            await self.godbolt.update_data()
             await self.piston.update_data()
 
             self.langs = collections.defaultdict(list)
 
-            for compiler in self.godbot.compilers:
+            for compiler in self.godbolt.compilers:
                 lang = Language(
                     provider=Provider.GODBOLT,
                     name=compiler.lang,
@@ -197,7 +197,7 @@ class VersionManager:
         match language.provider:
             case Provider.GODBOLT:
                 assert language.internal_id, "GODBOLT langs should have an internal ID."
-                return await self.godbot.execute(
+                return await self.godbolt.execute(
                     language.name, language.internal_id, code
                 )
             case Provider.PISTON:
@@ -214,7 +214,7 @@ class VersionManager:
         match language.provider:
             case Provider.GODBOLT:
                 assert language.internal_id, "GODBOLT langs should have an internal ID."
-                return await self.godbot.compile(
+                return await self.godbolt.compile(
                     language.name, language.internal_id, code
                 )
             case Provider.PISTON:
