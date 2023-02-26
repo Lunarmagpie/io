@@ -1,6 +1,5 @@
 import re
 
-
 JAVA_PUBLIC_CLASS_REGEX = re.compile(r"public\s+class")
 RUST_FN_REGEX = re.compile(r"fn\s+main\s*\(\s*\)")
 SAMARIUM_FN_REGEX = re.compile(r"=>\s+\*")

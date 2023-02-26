@@ -5,10 +5,11 @@ import collections
 import dataclasses
 import enum
 import typing as t
-from result import Result, Err
+
+from result import Err, Result
 
 from bot import godbolt, piston
-from bot.response import RunResponse, ASMResponse
+from bot.response import ASMResponse, RunResponse
 
 
 class Provider(enum.Enum):

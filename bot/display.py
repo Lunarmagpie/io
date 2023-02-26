@@ -66,7 +66,13 @@ class TextDisplay:
             # Discord doesn't understand this either.
             cleaner = cleaner.replace("\x1b[01m", "\x1b[1m")
 
-            out += f"\n```ansi\n{dahlia.quantize_ansi(cleaner, to=3)}\n```"
+            try:
+                quantized = dahlia.quantize_ansi(cleaner, to=3)
+            except Exception:
+                # Invalid ANSI
+                quantized = cleaner
+
+            out += f"\n```ansi\n{quantized}\n```"
 
         if self.code is None:
             out += f"\n```\nNo output```"
