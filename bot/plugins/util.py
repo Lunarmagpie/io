@@ -36,7 +36,9 @@ HELP_EMBEDS = [
 @plugin.include
 @crescent.command(description="List the supported language runtimes.")
 async def languages(ctx: crescent.Context) -> None:
-    out = ", ".join(f"`{lang}`" for lang in plugin.model.versions.langs.keys())
+    langs = list(f"`{lang}`" for lang in plugin.model.versions.langs.keys())
+    langs.sort()
+    out = ", ".join(langs)
 
     embed = EmbedBuilder().set_title("Supported Languages").set_description(out).build()
 
