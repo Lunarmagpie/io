@@ -21,15 +21,8 @@ The bot is built on [hikari](https://github.com/hikari-py/hikari) and [hikari-cr
 ## Credits
 - Me for developing the bot
 - [@Endercheif](https://github.com/Endercheif/) for adding new lanagues to [piston](https://github.com/Endercheif/piston) and hosting.
-- [Compiler Explorer](https://github.com/compiler-explorer/compiler-explorer) for making an awesome API they let anyone use for free. 
+- [Compiler Explorer](https://github.com/compiler-explorer/compiler-explorer) for making an awesome API they let anyone use for free.
 
 ## Self Hosting
-
-Note: A database can be created by running this inside of `sudo -u postgres psql`
-```sh
-CREATE USER io WITH ENCRYPTED PASSWORD 'io';
-CREATE DATABASE io WITH OWNER io;
-```
-
-Rename `config.py.example` to `config.py` and fill in the missing information.
+Rename `.env.example` to `.env` and fill in the missing information.
 You can then use `docker compose up` to run the bot.
