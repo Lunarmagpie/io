@@ -10,7 +10,7 @@ import hikari
 import hikari.components
 from result import Err, Ok, Result
 
-import config
+from bot.config import CONFIG
 from bot.display import TextDisplay
 from bot.plugins.prefixes import PREFIX_CACHE
 from bot.transforms import transform_code
@@ -146,7 +146,7 @@ class MessageContainer(abc.ABC):
         await self.app.rest.add_reaction(
             channel_id,
             message_id,
-            emoji=config.LOADING_EMOJI,
+            emoji=CONFIG.LOADING_EMOJI,
         )
 
     def remove_reaction(
@@ -156,7 +156,7 @@ class MessageContainer(abc.ABC):
             self.app.rest.delete_my_reaction(
                 channel_id,
                 message_id,
-                emoji=config.LOADING_EMOJI,
+                emoji=CONFIG.LOADING_EMOJI,
             )
         )
 
@@ -212,7 +212,7 @@ class MessageContainer(abc.ABC):
             (
                 me.mention + prefix,
                 me.mention + "/" + prefix,
-                config.PREFIX + prefix,
+                CONFIG.PREFIX + prefix,
                 *guild_prefixes,
             )
         ):

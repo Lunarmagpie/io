@@ -160,7 +160,7 @@ cython_debug/
 .idea/
 .vscode
 
-config.py
+.env
 poetry.lock
 
 data/

@@ -2,7 +2,7 @@ import crescent
 import flare
 import hikari
 
-import config
+from bot.config import CONFIG
 from bot.buttons import delete_button
 from bot.display import EmbedBuilder
 from bot.message_container import bot_messages
@@ -13,7 +13,7 @@ plugin = Plugin()
 HELP_EMBEDS = [
     EmbedBuilder()
     .set_description(
-        f"Hi! My name is {config.NAME}, and my job is to run code."
+        f"Hi! My name is {CONFIG.NAME}, and my job is to run code."
         "\n I can run any code inside of code blocks:"
         "\n\\`\\`\\`<language-name>"
         "\n<your code here>"
@@ -22,8 +22,8 @@ HELP_EMBEDS = [
     .build(),
     EmbedBuilder()
     .set_description(
-        f"\n\\* Running code - Use the `Run Code` message command or start your message with `{config.PREFIX}run`."
-        f"\n\\* View Assembly - Use the `Assembly` message command or start your message with `{config.PREFIX}asm`."
+        f"\n\\* Running code - Use the `Run Code` message command or start your message with `{CONFIG.PREFIX}run`."
+        f"\n\\* View Assembly - Use the `Assembly` message command or start your message with `{CONFIG.PREFIX}asm`."
         f"\n\\* Delete my response - Use the `Delete` message command."
         "\n"
         "\nYou can use message commands by right clicking on a message,"
@@ -54,8 +54,8 @@ async def help(ctx: crescent.Context) -> None:
         embeds=HELP_EMBEDS,
         component=await flare.Row(
             delete_button(ctx.user.id),
-            flare.LinkButton(config.REPO_LINK, label="Source Code"),
-            flare.LinkButton(config.INVITE_LINK, label="Invite"),
+            flare.LinkButton(CONFIG.REPO_LINK, label="Source Code"),
+            flare.LinkButton(CONFIG.INVITE_LINK, label="Invite"),
         ),
         ensure_message=True,
     )
@@ -84,8 +84,8 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
         embeds=HELP_EMBEDS,
         component=await flare.Row(
             delete_button(event.author.id),
-            flare.LinkButton(config.REPO_LINK, label="Source Code"),
-            flare.LinkButton(config.INVITE_LINK, label="Invite"),
+            flare.LinkButton(CONFIG.REPO_LINK, label="Source Code"),
+            flare.LinkButton(CONFIG.INVITE_LINK, label="Invite"),
         ),
         reply=event.message,
         mentions_reply=False,
@@ -143,7 +143,7 @@ async def credits(ctx: crescent.Context):
         embed=embed.build(),
         component=await flare.Row(
             delete_button(ctx.user.id),
-            flare.LinkButton(config.REPO_LINK, label="Source Code"),
+            flare.LinkButton(CONFIG.REPO_LINK, label="Source Code"),
         ),
         ensure_message=True,
     )

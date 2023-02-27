@@ -2,7 +2,7 @@ import asyncio
 
 import hikari
 
-import config
+from bot.config import CONFIG
 from bot.database import Database
 from bot.version_manager import VersionManager
 
@@ -16,17 +16,17 @@ class Model:
         async with asyncio.TaskGroup() as tg:
             versions_task = tg.create_task(
                 VersionManager.build(
-                    piston_url=config.PISTON, godbolt_url=config.GODBOLT
+                    piston_url=CONFIG.PISTON, godbolt_url=CONFIG.GODBOLT
                 )
             )
             db_task = tg.create_task(
                 Database.open(
                     migrations_folder="migrations",
-                    port=config.DATABASE_PORT,
-                    host=config.DATABASE_HOST,
-                    database=config.DATABASE,
-                    user=config.DATABASE_USER,
-                    password=config.DATABASE_PASSWORD,
+                    port=CONFIG.DATABASE_PORT,
+                    host=CONFIG.DATABASE_HOST,
+                    database=CONFIG.DATABASE,
+                    user=CONFIG.DATABASE_USER,
+                    password=CONFIG.DATABASE_PASSWORD,
                 )
             )
 
