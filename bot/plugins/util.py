@@ -22,8 +22,8 @@ HELP_EMBEDS = [
     .build(),
     EmbedBuilder()
     .set_description(
-        f"\n\\* Running code - Use the `Run Code` message command or start your message with `{CONFIG.PREFIX}run`."
-        f"\n\\* View Assembly - Use the `Assembly` message command or start your message with `{CONFIG.PREFIX}asm`."
+        f"\n\\* Running code - Use the `Run Code` message command or start your message with `{CONFIG.PREFIX}run`."  # noqa: E501
+        f"\n\\* View Assembly - Use the `Assembly` message command or start your message with `{CONFIG.PREFIX}asm`."  # noqa: E501
         f"\n\\* Delete my response - Use the `Delete` message command."
         "\n"
         "\nYou can use message commands by right clicking on a message,"
@@ -125,7 +125,7 @@ async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
 
 @plugin.include
 @crescent.command
-async def credits(ctx: crescent.Context):
+async def credits(ctx: crescent.Context) -> None:
     embed = EmbedBuilder()
 
     embed.set_title("Credits")
@@ -133,7 +133,7 @@ async def credits(ctx: crescent.Context):
     embed.set_description(
         "Thank you to my creators!"
         "\n[Lunarmagpie#0001](https://github.com/Lunarmagpie/) for developing me."
-        "\n[Endercheif#0187](https://github.com/Endercheif/) hosting the piston instance and adding languages."
+        "\n[Endercheif#0187](https://github.com/Endercheif/) hosting the piston instance and adding languages."  # noqa: E501
         "\nGodbolt API for allowing people to run code for free"
         "\nTech Stack: [hikari](https://github.com/hikari-py/hikari)"
         ", [hikari-crescent](https://github.com/hikari-crescent/hikari-crescent)."

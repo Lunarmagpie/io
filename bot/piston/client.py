@@ -28,7 +28,7 @@ class Client:
         return self
 
     @property
-    def aiohttp(self):
+    def aiohttp(self) -> aiohttp.ClientSession:
         assert self._aiohttp, "Aiohttp client needs to be created."
         return self._aiohttp
 
@@ -52,7 +52,7 @@ class Client:
     def unalias(self, lang: str) -> str:
         return self.aliases.get(lang, lang)
 
-    async def update_data(self):
+    async def update_data(self) -> None:
         self.runtimes = await self.get_runtimes()
 
     async def execute(

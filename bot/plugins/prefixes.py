@@ -24,7 +24,7 @@ PREFIX_CACHE: dict[hikari.Snowflake | int, list[str]] = collections.defaultdict(
 
 @plugin.include
 @crescent.event
-async def on_start(event: hikari.StartedEvent):
+async def on_start(event: hikari.StartedEvent) -> None:
     for prefix in await Prefixes.fetchmany():
         PREFIX_CACHE[prefix.guild_id] = prefix.prefixes
 

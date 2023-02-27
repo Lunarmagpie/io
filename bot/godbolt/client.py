@@ -10,11 +10,11 @@ from bot.response import ASMResponse, RunResponse
 __all__: list[str] = ["Client"]
 
 
-def _get_text_or_none(l: list[dict[str, str]]) -> str | None:
-    if not l:
+def _get_text_or_none(list: list[dict[str, str]]) -> str | None:
+    if not list:
         return None
 
-    return "\n".join(filter(None, map(lambda x: x.get("text"), l)))
+    return "\n".join(filter(None, map(lambda x: x.get("text"), list)))
 
 
 class Client:
@@ -32,7 +32,7 @@ class Client:
         return self
 
     @property
-    def aiohttp(self):
+    def aiohttp(self) -> aiohttp.ClientSession:
         assert self._aiohttp, "Aiohttp client needs to be created."
         return self._aiohttp
 
@@ -64,7 +64,6 @@ class Client:
                         "executorRequest": False,
                     },
                     "filters": {
-                        "execute": False,
                         "binary": False,
                         "binaryObject": False,
                         "commentOnly": True,
@@ -133,18 +132,18 @@ class Client:
                         code=exit_code,
                     )
                 )
-            else:
-                return Ok(
-                    RunResponse(
-                        stdout=_get_text_or_none(j["stdout"]),
-                        stderr=_get_text_or_none(j["stderr"]),
-                        output=_get_text_or_none(j["stdout"]),
-                        signal=None,
-                        provider="godbolt",
-                        code=j["code"],
-                    )
-                )
 
-    async def update_data(self):
+            return Ok(
+                RunResponse(
+                    stdout=_get_text_or_none(j["stdout"]),
+                    stderr=_get_text_or_none(j["stderr"]),
+                    output=_get_text_or_none(j["stdout"]),
+                    signal=None,
+                    provider="godbolt",
+                    code=j["code"],
+                )
+            )
+
+    async def update_data(self) -> None:
         self.compilers = await self.get_compilers()
         self.lanauges = await self.get_languages()

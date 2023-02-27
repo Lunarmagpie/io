@@ -115,7 +115,7 @@ class MessageContainer(abc.ABC):
             return Err(
                 (
                     TextDisplay(
-                        error=f"The code can't be run because no language was specified."
+                        error="The code can't be run because no language was specified."
                     ),
                     hikari.UNDEFINED,
                 )

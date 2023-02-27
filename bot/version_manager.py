@@ -47,7 +47,7 @@ def _sort_langs_inplace(langs: list[Language]) -> None:
         return 0
 
     def f(lang: Language) -> tuple[int, int, int]:
-        if not "." in lang.version:
+        if "." not in lang.version:
             return (0, 0, 0)
 
         semver = lang.version.split(".")
@@ -59,7 +59,7 @@ def _sort_langs_inplace(langs: list[Language]) -> None:
     langs.sort(key=f, reverse=True)
 
 
-def latest_of_type(langs: list[Language], name: str, amount: int):
+def latest_of_type(langs: list[Language], name: str, amount: int) -> list[Language]:
     """`langs` is a sorted list."""
     out: list[Language] = []
 
@@ -106,7 +106,7 @@ class VersionManager:
         assert self._piston
         return self._piston
 
-    async def update(self):
+    async def update(self) -> t.NoReturn:
         while True:
             await self.godbolt.update_data()
             await self.piston.update_data()

@@ -30,10 +30,20 @@ pythonVersion = "3.11"
 typeCheckingMode = "strict"
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 select = [
+    "E",
+    "F",
     # isort
     "I001",
+    # Returns
+    "RET",
+    # Annotations
+    "ANN201",
+    "ANN202",
+    "ANN204",
+    "ANN205",
+    "ANN206",
 ]
 
 [tool.black]
