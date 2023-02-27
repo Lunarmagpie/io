@@ -1,4 +1,17 @@
 version: "1.0.0"
 services:
   bot:
+    env_file: .env
+    depends_on:
+      - db
+    links:
+      - db
     build: .
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: io
+      POSTGRES_DB: io
+      POSTGRES_PASSWORD: io

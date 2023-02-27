@@ -1,0 +1,46 @@
+{
+    "tables": [
+        {
+            "name": "prefixes",
+            "fields": [
+                {
+                    "name": "guild_id",
+                    "type_": "BIGINT",
+                    "not_null": true
+                },
+                {
+                    "name": "prefixes",
+                    "type_": "VARCHAR(32)[]",
+                    "not_null": true
+                }
+            ],
+            "fk_constraints": [],
+            "pk_constraint": {
+                "name": "_prefixes_guild_id_primary_key",
+                "raw_sql": "CONSTRAINT _prefixes_guild_id_primary_key PRIMARY KEY ( guild_id )"
+            },
+            "unique_constraints": [],
+            "check_constraints": [],
+            "exclude_constraints": []
+        },
+        {
+            "name": "_migrations",
+            "fields": [
+                {
+                    "name": "id_",
+                    "type_": "INTEGER",
+                    "not_null": true
+                }
+            ],
+            "fk_constraints": [],
+            "pk_constraint": {
+                "name": "__migrations_id__primary_key",
+                "raw_sql": "CONSTRAINT __migrations_id__primary_key PRIMARY KEY ( id_ )"
+            },
+            "unique_constraints": [],
+            "check_constraints": [],
+            "exclude_constraints": []
+        }
+    ],
+    "indexes": []
+}

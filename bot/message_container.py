@@ -10,8 +10,9 @@ import hikari
 import hikari.components
 from result import Err, Ok, Result
 
-import config
+from bot.config import CONFIG
 from bot.display import TextDisplay
+from bot.plugins.prefixes import PREFIX_CACHE
 from bot.transforms import transform_code
 from bot.version_manager import Language
 
@@ -159,7 +160,7 @@ class MessageContainer(abc.ABC):
         await self.app.rest.add_reaction(
             channel_id,
             message_id,
-            emoji=config.LOADING_EMOJI,
+            emoji=CONFIG.LOADING_EMOJI,
         )
 
     def remove_reaction(
@@ -169,7 +170,7 @@ class MessageContainer(abc.ABC):
             self.app.rest.delete_my_reaction(
                 channel_id,
                 message_id,
-                emoji=config.LOADING_EMOJI,
+                emoji=CONFIG.LOADING_EMOJI,
             )
         )
 
@@ -214,10 +215,20 @@ class MessageContainer(abc.ABC):
 
         content = event.message.content.lower()
 
-        if not (
-            content.startswith(config.PREFIX + prefix)
-            or content.startswith(me.mention + prefix)
-            or content.startswith(me.mention + "/" + prefix)
+        if isinstance(event, hikari.GuildMessageCreateEvent):
+            guild_prefixes = (
+                guild_prefix + prefix for guild_prefix in PREFIX_CACHE[event.guild_id]
+            )
+        else:
+            guild_prefixes = ()
+
+        if not content.startswith(
+            (
+                me.mention + prefix,
+                me.mention + "/" + prefix,
+                CONFIG.PREFIX + prefix,
+                *guild_prefixes,
+            )
         ):
             return
 

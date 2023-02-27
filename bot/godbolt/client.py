@@ -3,7 +3,7 @@ import typing as t
 import aiohttp
 from result import Err, Ok, Result
 
-import config
+from bot.config import CONFIG
 from bot.godbolt.models import Compiler, Language
 from bot.response import ASMResponse, RunResponse
 
@@ -55,7 +55,7 @@ class Client:
         self, lang: str, compiler_id: str, code: str
     ) -> Result[ASMResponse, str]:
         async with self.aiohttp.post(
-            config.GODBOLT + f"/compiler/{compiler_id}/compile",
+            CONFIG.GODBOLT + f"/compiler/{compiler_id}/compile",
             json={
                 "source": code,
                 "lang": lang.lower(),
@@ -98,7 +98,7 @@ class Client:
         self, lang: str, compiler_id: str, code: str
     ) -> Result[RunResponse, str]:
         async with self.aiohttp.post(
-            config.GODBOLT + f"/compiler/{compiler_id}/compile",
+            CONFIG.GODBOLT + f"/compiler/{compiler_id}/compile",
             json={
                 "source": code,
                 "lang": lang.lower(),
