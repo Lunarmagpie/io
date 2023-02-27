@@ -12,6 +12,7 @@ from result import Err, Ok, Result
 
 import config
 from bot.display import TextDisplay
+from bot.plugins.prefixes import PREFIX_CACHE
 from bot.transforms import transform_code
 from bot.version_manager import Language
 
@@ -200,10 +201,20 @@ class MessageContainer(abc.ABC):
 
         content = event.message.content.lower()
 
-        if not (
-            content.startswith(config.PREFIX + prefix)
-            or content.startswith(me.mention + prefix)
-            or content.startswith(me.mention + "/" + prefix)
+        if isinstance(event, hikari.GuildMessageCreateEvent):
+            guild_prefixes = (
+                guild_prefix + prefix for guild_prefix in PREFIX_CACHE[event.guild_id]
+            )
+        else:
+            guild_prefixes = ()
+
+        if not content.startswith(
+            (
+                me.mention + prefix,
+                me.mention + "/" + prefix,
+                config.PREFIX + prefix,
+                *guild_prefixes,
+            )
         ):
             return
 

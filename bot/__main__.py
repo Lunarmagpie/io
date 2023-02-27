@@ -18,5 +18,4 @@ client = crescent.Client(bot, model)
 client.plugins.load_folder("bot.plugins")
 
 bot.subscribe(hikari.StartingEvent, model.on_start)
-
 bot.run()
