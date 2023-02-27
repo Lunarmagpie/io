@@ -6,6 +6,11 @@ NAME = "Io"
 # All message commands must be prefixed with this.
 PREFIX = "io/"
 
+# The Database
+DATABASE = "io"
+DATABASE_USER = "io"
+DATABASE_PASSWORD = "io"
+
 # Bot's source code repository
 REPO_LINK = "https://github.com/Lunarmagpie/io"
 

@@ -1,23 +1,84 @@
-import crescent
+import collections
+import itertools
 
+import crescent
+import hikari
+
+from bot.database import Prefixes
+from bot.display import EmbedBuilder
 from bot.utils import Plugin
 
 plugin = Plugin()
 
+prefix_group = crescent.Group(
+    "prefixes",
+    dm_enabled=False,
+    default_member_permissions=hikari.Permissions.ADMINISTRATOR,
+)
 
-@plugin.include
-@crescent.command
-async def list_prefixes(ctx: crescent.Context) -> None:
-    ...
-
-
-@plugin.include
-@crescent.command
-async def add_prefix(ctx: crescent.Context) -> None:
-    ...
+PREFIX_CACHE: dict[hikari.Snowflake | int, list[str]] = collections.defaultdict(list)
 
 
 @plugin.include
-@crescent.command
-async def remove_prefix(ctx: crescent.Context) -> None:
-    ...
+@crescent.event
+async def on_start(event: hikari.StartedEvent):
+    for prefix in await Prefixes.fetchmany():
+        PREFIX_CACHE[prefix.guild_id] = prefix.prefixes
+
+
+@plugin.include
+@crescent.command(
+    dm_enabled=False,
+    description="List the available prefixes in this guild.",
+)
+async def prefixes(ctx: crescent.Context) -> None:
+    assert ctx.guild_id, "This command can not be used im DMs"
+    prefixes = PREFIX_CACHE[ctx.guild_id]
+
+    embed = EmbedBuilder(title="Prefixes")
+
+    embed.set_description(
+        "\n".join(map(lambda x: f"`{x}`", itertools.chain(["io/"], prefixes)))
+    )
+
+    await ctx.respond(embed=embed.build())
+
+
+@plugin.include
+@prefix_group.child
+@crescent.command(description="Add a prefix for this guild.")
+async def create(ctx: crescent.Context, prefix: str) -> None:
+    assert ctx.guild_id, "This command can not be used im DMs"
+
+    if len(prefix) > 32:
+        await ctx.respond("Prefix must be 32 characters or less.")
+        return
+
+    if prefix in PREFIX_CACHE[ctx.guild_id]:
+        await ctx.respond(f"`{prefix}` is already a prefix for this guild.")
+        return
+
+    PREFIX_CACHE[ctx.guild_id].append(prefix)
+
+    # await Prefixes(guild_id=ctx.guild_id, prefix=prefix).create()
+
+    await ctx.respond(f"`{prefix}` registered as a prefix for this guild.")
+
+
+@plugin.include
+@prefix_group.child
+@crescent.command(
+    description="Remove a prefix for this guild. `io/` can not be removed."
+)
+async def remove(ctx: crescent.Context, prefix: str) -> None:
+    assert ctx.guild_id, "This command can not be used im DMs"
+
+    if prefix not in PREFIX_CACHE[ctx.guild_id]:
+        await ctx.respond(f"`{prefix}` is not a prefix for this guild.")
+        return
+
+    PREFIX_CACHE[ctx.guild_id].remove(prefix)
+
+    # await Prefixes(guild_id=ctx.guild_id, prefix=prefix).delete()
+
+    await ctx.respond(f"`{prefix}` removed as a prefix for this guild.")

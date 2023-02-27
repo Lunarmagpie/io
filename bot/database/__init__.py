@@ -1,4 +1,4 @@
 from bot.database.database import Database
-from bot.database.models import Prefix
+from bot.database.models import Prefixes
 
-__all__: list[str] = ["Database", "Prefix"]
+__all__: list[str] = ["Database", "Prefixes"]
