@@ -27,7 +27,9 @@ class Prefixes(apgorm.Model):
     @staticmethod
     async def create_prefix(guild_id: hikari.Snowflake, prefix: str) -> None:
         if prefix_obj := await Prefixes(guild_id=guild_id).exists():
-            prefix_obj.prefixes.append(prefix)
+            the_list = prefix_obj.prefixes
+            the_list.append(prefix)
+            prefix_obj.prefixes = the_list
             await prefix_obj.save()
             return
 
@@ -36,5 +38,9 @@ class Prefixes(apgorm.Model):
     @staticmethod
     async def remove_prefix(guild_id: hikari.Snowflake, prefix: str) -> None:
         prefix_obj = await Prefixes.fetch(guild_id=guild_id)
-        prefix_obj.prefixes.remove(prefix)
+        the_list = prefix_obj.prefixes
+        the_list.remove(prefix)
+        prefix_obj.prefixes = the_list
+
+        prefix_obj._changed_fields.add("prefixes")
         await prefix_obj.save()
