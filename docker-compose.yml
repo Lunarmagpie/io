@@ -1,6 +1,7 @@
 version: "1.0.0"
 services:
   bot:
+    env_file: .env
     depends_on:
       - db
     links:

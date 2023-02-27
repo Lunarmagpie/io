@@ -1,12 +1,14 @@
+import os
+
 import dotenv
 import hikari
 
 
 class Config:
     def __init__(self) -> None:
-        env = dotenv.dotenv_values(".env")
+        dotenv.load_dotenv()
 
-        env = {k: v for k, v in env.items() if v}
+        env = os.environ
 
         self.TOKEN = env["TOKEN"]
         self.NAME = env["NAME"]
