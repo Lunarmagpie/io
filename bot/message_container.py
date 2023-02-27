@@ -42,7 +42,9 @@ class MessageContainer(abc.ABC):
         )
         """Dictionary of user messages to bot messages."""
 
-    def _find_code(self, message: str | None) -> Result[Code, TextDisplay]:
+    async def _find_code(
+        self, message: str | None, attachments: t.Sequence[hikari.Attachment]
+    ) -> Result[Code, TextDisplay]:
         if not message:
             return Err(
                 TextDisplay(
@@ -67,9 +69,21 @@ class MessageContainer(abc.ABC):
                 continue
 
         if start_of_code is None or end_of_code is None:
+            # If theres no code, we try to find a file.
+            for attachment in attachments:
+                if "." in attachment.filename:
+                    lang = attachment.filename.split(".")[1]
+
+                    return Ok(
+                        Code(
+                            lang=self.unalias(lang),
+                            code=(await attachment.read()).decode(),
+                        )
+                    )
+
             return Err(
                 TextDisplay(
-                    description="No code block was found in the provided message.",
+                    description="No code block for file was found in the provided message.",
                 )
             )
 
@@ -89,7 +103,7 @@ class MessageContainer(abc.ABC):
     ) -> Result[
         tuple[TextDisplay, flare.Row], tuple[TextDisplay, hikari.UndefinedType]
     ]:
-        res = self._find_code(message.content)
+        res = await self._find_code(message.content, message.attachments)
 
         if isinstance(res, Err):
             return Err((res.value, hikari.UNDEFINED))
