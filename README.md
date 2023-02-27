@@ -25,5 +25,11 @@ The bot is built on [hikari](https://github.com/hikari-py/hikari) and [hikari-cr
 
 ## Self Hosting
 
+Note: A database can be created by running this inside of `sudo -u postgres psql`
+```sh
+CREATE USER io WITH ENCRYPTED PASSWORD 'io';
+CREATE DATABASE io WITH OWNER io;
+```
+
 Rename `config.py.example` to `config.py` and fill in the missing information.
 You can then use `docker compose up` to run the bot.

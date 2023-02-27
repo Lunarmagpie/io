@@ -10,11 +10,14 @@ from bot.utils import Plugin
 
 plugin = Plugin()
 
-prefix_group = crescent.Group(
-    "prefixes",
+admin_group = crescent.Group(
+    "admin",
+    description="Group admin commands",
     dm_enabled=False,
     default_member_permissions=hikari.Permissions.ADMINISTRATOR,
 )
+prefix_group = admin_group.sub_group("prefixes")
+
 
 PREFIX_CACHE: dict[hikari.Snowflake | int, list[str]] = collections.defaultdict(list)
 
@@ -60,7 +63,7 @@ async def create(ctx: crescent.Context, prefix: str) -> None:
 
     PREFIX_CACHE[ctx.guild_id].append(prefix)
 
-    # await Prefixes(guild_id=ctx.guild_id, prefix=prefix).create()
+    await Prefixes.create_prefix(ctx.guild_id, prefix)
 
     await ctx.respond(f"`{prefix}` registered as a prefix for this guild.")
 
@@ -79,6 +82,6 @@ async def remove(ctx: crescent.Context, prefix: str) -> None:
 
     PREFIX_CACHE[ctx.guild_id].remove(prefix)
 
-    # await Prefixes(guild_id=ctx.guild_id, prefix=prefix).delete()
+    await Prefixes.remove_prefix(ctx.guild_id, prefix)
 
     await ctx.respond(f"`{prefix}` removed as a prefix for this guild.")

@@ -1,0 +1,10 @@
+CREATE TABLE prefixes ();
+CREATE TABLE _migrations ();
+ALTER TABLE prefixes ADD COLUMN guild_id BIGINT;
+ALTER TABLE prefixes ADD COLUMN prefixes VARCHAR(32)[];
+ALTER TABLE _migrations ADD COLUMN id_ INTEGER;
+ALTER TABLE prefixes ALTER COLUMN guild_id SET NOT NULL;
+ALTER TABLE prefixes ALTER COLUMN prefixes SET NOT NULL;
+ALTER TABLE _migrations ALTER COLUMN id_ SET NOT NULL;
+ALTER TABLE prefixes ADD CONSTRAINT _prefixes_guild_id_primary_key PRIMARY KEY ( guild_id );
+ALTER TABLE _migrations ADD CONSTRAINT __migrations_id__primary_key PRIMARY KEY ( id_ );
