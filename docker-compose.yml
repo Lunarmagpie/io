@@ -1,7 +1,6 @@
 version: "1.0.0"
 services:
   bot:
-    network_mode: bridge
     depends_on:
       - db
     links:
@@ -11,7 +10,6 @@ services:
   db:
     image: postgres
     restart: always
-    network_mode: bridge
     environment:
       POSTGRES_USER: io
       POSTGRES_DB: io
