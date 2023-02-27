@@ -22,6 +22,8 @@ class Model:
             db_task = tg.create_task(
                 Database.open(
                     migrations_folder="migrations",
+                    port=config.DATABASE_PORT,
+                    host=config.DATABASE_HOST,
                     database=config.DATABASE,
                     user=config.DATABASE_USER,
                     password=config.DATABASE_PASSWORD,

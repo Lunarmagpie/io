@@ -10,14 +10,22 @@ class Database(apgorm.Database):
 
     @classmethod
     async def open(
-        cls, *, migrations_folder: str, database: str, user: str, password: str
+        cls,
+        *,
+        migrations_folder: str,
+        host: str,
+        port: int,
+        database: str,
+        user: str,
+        password: str
     ) -> t.Self:
         self = cls(migrations_folder)
         await self.connect(
-            host="localhost",
+            host=host,
             database=database,
             user=user,
             password=password,
+            port=port,
         )
 
         if self.must_create_migrations():
