@@ -21,12 +21,6 @@ class Code(t.NamedTuple):
     code: str
 
 
-message_cache: t.MutableMapping[
-    hikari.Snowflake, hikari.Snowflake
-] = cachetools.TTLCache(
-    maxsize=10000, ttl=datetime.timedelta(minutes=20).total_seconds()
-)
-"""Dictionary of user messages to bot messages."""
 bot_messages: t.MutableMapping[
     hikari.Snowflake, tuple[hikari.Snowflake | None, hikari.Snowflake]
 ] = cachetools.TTLCache(
@@ -41,6 +35,12 @@ class MessageContainer(abc.ABC):
     def __init__(self, app: hikari.GatewayBot, unalias: t.Callable[[str], str]) -> None:
         self.unalias = unalias
         self.app = app
+        self.message_cache: t.MutableMapping[
+            hikari.Snowflake, hikari.Snowflake
+        ] = cachetools.TTLCache(
+            maxsize=10000, ttl=datetime.timedelta(minutes=20).total_seconds()
+        )
+        """Dictionary of user messages to bot messages."""
 
     def _find_code(self, message: str | None) -> Result[Code, TextDisplay]:
         if not message:
@@ -166,7 +166,7 @@ class MessageContainer(abc.ABC):
         """Do something with the code."""
 
     async def on_command(self, ctx: crescent.Context, message: hikari.Message) -> None:
-        if message_cache.get(message.id):
+        if self.message_cache.get(message.id):
             await ctx.respond(
                 "This code already has a runner tied to it. Edit the message to run new code.",
                 ephemeral=True,
@@ -183,7 +183,7 @@ class MessageContainer(abc.ABC):
             ensure_message=True,
         )
 
-        message_cache[message.id] = resp_message.id
+        self.message_cache[message.id] = resp_message.id
         bot_messages[resp_message.id] = (message.id, ctx.user.id)
 
     async def on_message(self, event: hikari.MessageCreateEvent, prefix: str) -> None:
@@ -223,11 +223,11 @@ class MessageContainer(abc.ABC):
             reply=event.message,
         )
 
-        message_cache[event.message.id] = resp_message.id
+        self.message_cache[event.message.id] = resp_message.id
         bot_messages[resp_message.id] = (event.message.id, event.author.id)
 
     async def on_edit(self, event: hikari.MessageUpdateEvent) -> None:
-        bot_message = message_cache.get(event.message.id)
+        bot_message = self.message_cache.get(event.message.id)
 
         if not bot_message:
             return
@@ -287,7 +287,7 @@ class MessageContainer(abc.ABC):
         bot_messages.pop(event.message_id, None)
 
         if data and data[0]:
-            message_cache.pop(data[0], None)
+            self.message_cache.pop(data[0], None)
 
     def get_select(
         self,
