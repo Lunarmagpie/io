@@ -83,7 +83,7 @@ class MessageContainer(abc.ABC):
 
             return Err(
                 TextDisplay(
-                    description="No code block for file was found in the provided message.",
+                    description="No code block or file was found in the provided message.",
                 )
             )
 
