@@ -1,8 +1,3 @@
-#!/bin/bash
+#!/bin/sh
 
-while true
-do
-    git pull
-    docker compose build
-    docker compose up
-done
+docker cp config.py $(sudo docker compose ps -q bot):/app/config.py
