@@ -2,8 +2,8 @@ import crescent
 import flare
 import hikari
 
-from bot.config import CONFIG
 from bot.buttons import delete_button
+from bot.config import CONFIG
 from bot.display import EmbedBuilder
 from bot.message_container import bot_messages
 from bot.utils import Plugin
