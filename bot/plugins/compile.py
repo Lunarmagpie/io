@@ -27,7 +27,7 @@ class Container(MessageContainer):
         if result.value.code != 0:
             return TextDisplay(
                 error="There was an error while running your code!",
-                code=result.value.stderr,
+                code=result.value.output,
             )
 
         output = result.value.output or ""
