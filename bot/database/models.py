@@ -41,6 +41,4 @@ class Prefixes(apgorm.Model):
         the_list = prefix_obj.prefixes
         the_list.remove(prefix)
         prefix_obj.prefixes = the_list
-
-        prefix_obj._changed_fields.add("prefixes")
         await prefix_obj.save()
