@@ -10,6 +10,8 @@ class Config:
 
         env = os.environ
 
+        self.VERSION = env.get("VERSION") or "development"
+
         self.TOKEN = env["TOKEN"]
         self.NAME = env["NAME"]
         self.PREFIX = env["PREFIX"]

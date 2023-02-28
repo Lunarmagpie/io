@@ -15,7 +15,12 @@ services:
     image: postgres
     restart: always
     network_mode: bridge
+    volumes:
+      - db-data:/var/lib/postgres
     environment:
       POSTGRES_USER: io
       POSTGRES_DB: io
       POSTGRES_PASSWORD: io
+
+volumes:
+  db-data:

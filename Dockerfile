@@ -2,6 +2,8 @@
    
 FROM python:3.11-slim
 
+ARG VERSION_TAG
+ENV VERSION=$VERSION_TAG
 
 # Copy files for poetry
 COPY pyproject.toml /app/pyproject.toml
