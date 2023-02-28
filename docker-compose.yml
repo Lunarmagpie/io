@@ -16,7 +16,7 @@ services:
     restart: always
     network_mode: bridge
     volumes:
-      - db-data:/var/lib/postgres
+      - db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: io
       POSTGRES_DB: io
@@ -24,3 +24,4 @@ services:
 
 volumes:
   db-data:
+    driver: local
