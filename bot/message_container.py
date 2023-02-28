@@ -31,7 +31,7 @@ bot_messages: t.MutableMapping[
 """Dictionary of bot messages to (User Message, User that used it)."""
 
 
-CODE_REGEX = re.compile(r"```.*```", flags=re.S)
+CODE_REGEX = re.compile(r"```[^`]*```", flags=re.S)
 
 
 class MessageContainer(abc.ABC):
@@ -77,7 +77,7 @@ class MessageContainer(abc.ABC):
                 )
             )
 
-        code = match.string[match.start() : match.end()]
+        code = match.group()
         lines = code.splitlines()
 
         return Ok(
