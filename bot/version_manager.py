@@ -106,6 +106,10 @@ class VersionManager:
         assert self._piston
         return self._piston
 
+    def get_lang(self, lang: str) -> list[Language] | None:
+        lang = self.piston.unalias(lang)
+        return self.langs.get(lang)
+
     async def update(self) -> t.NoReturn:
         while True:
             await self.godbolt.update_data()

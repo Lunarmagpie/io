@@ -87,6 +87,37 @@ class MessageContainer(abc.ABC):
             )
         )
 
+    @staticmethod
+    def _find_args(message: str | None) -> tuple[str, str | None] | None:
+        """
+        Return a tuple of (lang, version) if its provided as an argument.
+        """
+        if not message:
+            return None
+
+        # args are entered like `io/run python3`
+        args = message.splitlines()[0].split(" ")[1:]
+
+        if not args:
+            return None
+
+        # For now only the version is used
+        lang_and_version = args[0]
+
+        if "-" in lang_and_version:
+            lang_parts = lang_and_version.split("-")
+            if len(lang_parts) > 1:
+                lang, version = lang_parts[:2]
+            else:
+                lang = lang_and_version
+                version = None
+
+        else:
+            lang = lang_and_version
+            version = None
+
+        return (lang, version)
+
     async def with_code_wrapper(
         self,
         author: hikari.Snowflake,
@@ -97,11 +128,21 @@ class MessageContainer(abc.ABC):
         tuple[TextDisplay, flare.Row], tuple[TextDisplay, hikari.UndefinedType]
     ]:
         res = await self._find_code(message.content, message.attachments)
+        maybe_args = self._find_args(message.content)
 
         if isinstance(res, Err):
             return Err((res.value, hikari.UNDEFINED))
 
         lang = res.value.lang
+
+        if old_lang and old_lang != lang:
+            version = None
+
+        if maybe_args:
+            if not version:
+                lang, version = maybe_args
+            else:
+                lang, _ = maybe_args
 
         if not lang:
             return Err(
@@ -112,9 +153,6 @@ class MessageContainer(abc.ABC):
                     hikari.UNDEFINED,
                 )
             )
-
-        if old_lang and old_lang != lang:
-            version = None
 
         language = self.get_version(lang, version)
         if not language:

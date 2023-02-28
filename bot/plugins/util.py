@@ -1,6 +1,9 @@
 import crescent
 import flare
 import hikari
+import more_itertools
+from miru.ext import nav
+import rapidfuzz
 
 from bot.buttons import delete_button
 from bot.config import CONFIG
@@ -123,7 +126,55 @@ async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
     )
 
 
+async def runtime_autocomplete(
+    _: crescent.Context, option: hikari.AutocompleteInteractionOption
+) -> list[hikari.CommandChoice]:
+    return list(
+        map(
+            lambda x: hikari.CommandChoice(name=x[0], value=x[0]),
+            rapidfuzz.process.extract(
+                option.value,
+                plugin.model.versions.langs.keys(),
+                limit=25,
+                score_cutoff=65,
+            ),
+        )
+    )
+
+
 @plugin.include
+@crescent.command(
+    name="runtimes", description="View the supported runtimes for a language."
+)
+class Runtimes:
+    lang = crescent.option(str, autocomplete=runtime_autocomplete)
+
+    async def callback(self, ctx: crescent.Context) -> None:
+        runtimes = plugin.model.versions.get_lang(self.lang)
+
+        if not runtimes:
+            await ctx.respond(f"`{self.lang}` is not a supported language.")
+            return
+
+        def build_page_embed(this_page_langs: list[str]) -> hikari.Embed:
+            embed = EmbedBuilder(f"Supported Runtimes for `{runtimes[0].name}`")
+            embed.set_description("\n".join(this_page_langs))
+            return embed.build()
+
+        langs = list(f"{runtime.name}-{runtime.version}" for runtime in runtimes)
+
+        if len(langs) < 10:
+            await ctx.respond(embed=build_page_embed(langs))
+            return
+
+        pages = list(
+            map(build_page_embed, more_itertools.chunked(langs, 10, strict=False))
+        )
+
+        nav_ = nav.NavigatorView(pages=pages)
+        await nav_.send(ctx.interaction)
+
+
 @crescent.command(description="View some info about the bot.")
 async def info(ctx: crescent.Context) -> None:
     embed = EmbedBuilder()
