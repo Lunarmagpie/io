@@ -3,6 +3,7 @@ import flare
 import hikari
 import more_itertools
 from miru.ext import nav
+import rapidfuzz
 
 from bot.buttons import delete_button
 from bot.config import CONFIG
@@ -125,18 +126,34 @@ async def delete(ctx: crescent.Context, message: hikari.Message) -> None:
     )
 
 
+async def runtime_autocomplete(
+    _: crescent.Context, option: hikari.AutocompleteInteractionOption
+) -> list[hikari.CommandChoice]:
+    return list(
+        map(
+            lambda x: hikari.CommandChoice(name=x[0], value=x[0]),
+            rapidfuzz.process.extract(
+                option.value,
+                plugin.model.versions.langs.keys(),
+                limit=25,
+                score_cutoff=65,
+            ),
+        )
+    )
+
+
 @plugin.include
 @crescent.command(
     name="runtimes", description="View the supported runtimes for a language."
 )
 class Runtimes:
-    lang = crescent.option(str)
+    lang = crescent.option(str, autocomplete=runtime_autocomplete)
 
     async def callback(self, ctx: crescent.Context) -> None:
         runtimes = plugin.model.versions.get_lang(self.lang)
 
         if not runtimes:
-            await ctx.respond(f"{self.lang} is not a supported language.")
+            await ctx.respond(f"`{self.lang}` is not a supported language.")
             return
 
         def build_page_embed(langs2: list[str]) -> hikari.Embed:
