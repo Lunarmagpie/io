@@ -35,7 +35,7 @@ class EmbedBuilder:
 
     def build(self) -> hikari.Embed:
         embed = hikari.Embed(
-            title=self.title, description=self.desc, color=hikari.Color(0)
+            title=self.title, description=self.desc, color=hikari.Color.from_hex_code("#F7B159")
         )
         if self.author:
             embed.set_footer(text=f"Requested by {self.author.username}.")
