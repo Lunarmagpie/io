@@ -1,6 +1,7 @@
 import crescent
 import flare
 import hikari
+import miru
 
 from bot.config import CONFIG
 from bot.model import Model
@@ -10,6 +11,7 @@ bot = hikari.GatewayBot(
     intents=hikari.Intents.ALL_UNPRIVILEGED | hikari.Intents.MESSAGE_CONTENT,
 )
 flare.install(bot)
+miru.install(bot)
 model = Model()
 
 

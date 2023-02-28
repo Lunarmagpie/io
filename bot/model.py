@@ -19,19 +19,20 @@ class Model:
                     piston_url=CONFIG.PISTON, godbolt_url=CONFIG.GODBOLT
                 )
             )
-            db_task = tg.create_task(
-                Database.open(
-                    migrations_folder="migrations",
-                    port=CONFIG.DATABASE_PORT,
-                    host=CONFIG.DATABASE_HOST,
-                    database=CONFIG.DATABASE,
-                    user=CONFIG.DATABASE_USER,
-                    password=CONFIG.DATABASE_PASSWORD,
-                )
-            )
+            # db_task = tg.create_task(
+            #     Database.open(
+            #         migrations_folder="migrations",
+            #         port=CONFIG.DATABASE_PORT,
+            #         host=CONFIG.DATABASE_HOST,
+            #         database=CONFIG.DATABASE,
+            #         user=CONFIG.DATABASE_USER,
+            #         password=CONFIG.DATABASE_PASSWORD,
+            #     )
+            # )
 
         self._versions = await versions_task
-        self._db = await db_task
+        # self._db = await db_task
+        self._db = None
 
     def unalias(self, lang: str) -> str:
         return self.versions.piston.unalias(lang)
