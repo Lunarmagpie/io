@@ -1,6 +1,7 @@
 import abc
 import asyncio
 import datetime
+import re
 import typing as t
 
 import cachetools
@@ -30,6 +31,9 @@ bot_messages: t.MutableMapping[
 """Dictionary of bot messages to (User Message, User that used it)."""
 
 
+CODE_REGEX = re.compile(r"```[^`]*```", flags=re.S)
+
+
 class MessageContainer(abc.ABC):
     """Message container meant to handle editable messages."""
 
@@ -53,24 +57,9 @@ class MessageContainer(abc.ABC):
                 )
             )
 
-        start_of_code = None
-        end_of_code = None
+        match = CODE_REGEX.search(message)
 
-        message_lines = message.splitlines()
-
-        for i, line in enumerate(message_lines):
-            if not (start_of_code is None or end_of_code is None):
-                continue
-
-            if line.startswith("```"):
-                if start_of_code is None:
-                    start_of_code = i
-                else:
-                    end_of_code = i
-                continue
-
-        if start_of_code is None or end_of_code is None:
-            # If theres no code, we try to find a file.
+        if not match:
             for attachment in attachments:
                 if "." in attachment.filename:
                     lang = attachment.filename.split(".")[1]
@@ -88,10 +77,13 @@ class MessageContainer(abc.ABC):
                 )
             )
 
+        code = match.group()
+        lines = code.splitlines()
+
         return Ok(
             Code(
-                lang=self.unalias(message_lines[start_of_code].removeprefix("```")),
-                code="\n".join(message_lines[start_of_code + 1 : end_of_code]),
+                lang=self.unalias(lines[0].removeprefix("```")),
+                code="\n".join(lines[1:-1]),
             )
         )
 

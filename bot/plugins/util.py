@@ -1,4 +1,3 @@
-
 import crescent
 import flare
 import hikari
@@ -30,7 +29,7 @@ HELP_EMBEDS = [
         f"\n\\* Delete my response - Use the `Delete` message command."
         "\n"
         "\nYou can use message commands by right clicking on a message,"
-        "selecting the `Apps` subcatagory, then finding the command from there."
+        "selecting the `Apps` subcategory, then finding the command from there."
     )
     .build(),
 ]
@@ -159,20 +158,23 @@ class Runtimes:
         await nav_.send(ctx.interaction)
 
 
-@plugin.include
-@crescent.command
-async def credits(ctx: crescent.Context) -> None:
+@crescent.command(description="View some info about the bot.")
+async def info(ctx: crescent.Context) -> None:
     embed = EmbedBuilder()
 
-    embed.set_title("Credits")
+    embed.set_title("Info")
 
     embed.set_description(
-        "Thank you to my creators!"
-        "\n[Lunarmagpie#0001](https://github.com/Lunarmagpie/) for developing me."
-        "\n[Endercheif#0187](https://github.com/Endercheif/) hosting the piston instance and adding languages."  # noqa: E501
+        "**Created by:**"
+        "\n[Lunarmagpie#0001](https://github.com/Lunarmagpie/) (wrote me)"
+        "\n[Endercheif#0187](https://github.com/Endercheif/) (hosts the piston instance and maintains languages)"  # noqa: E501
+        "\n**Thank you to:**"
+        "\n[Engineer Man](https://github.com/engineer-man/), piston's developer"
         "\nGodbolt API for allowing people to run code for free"
-        "\nTech Stack: [hikari](https://github.com/hikari-py/hikari)"
-        ", [hikari-crescent](https://github.com/hikari-crescent/hikari-crescent)."
+        "\n**Tech Stack:**"
+        "\n[hikari](https://github.com/hikari-py/hikari)"
+        ", [hikari-crescent](https://github.com/hikari-crescent/hikari-crescent)"
+        f"\n\n*Version {CONFIG.VERSION}*"
     )
 
     resp = await ctx.respond(

@@ -19,5 +19,7 @@ client = crescent.Client(bot, model)
 
 client.plugins.load_folder("bot.plugins")
 
+print(f"Starting version {CONFIG.VERSION}...")
+
 bot.subscribe(hikari.StartingEvent, model.on_start)
 bot.run()

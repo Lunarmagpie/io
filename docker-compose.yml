@@ -1,17 +1,26 @@
 version: "3.8"
 services:
   bot:
-    env_file: .env
+    image: lunarmagpie/io:latest
+    restart: always
+    network_mode: bridge
     depends_on:
       - db
     links:
       - db
-    build: .
+    env_file:
+      - .env
 
   db:
     image: postgres
     restart: always
+    network_mode: bridge
+    volumes:
+      - db-data:/var/lib/postgres
     environment:
       POSTGRES_USER: io
       POSTGRES_DB: io
       POSTGRES_PASSWORD: io
+
+volumes:
+  db-data:
