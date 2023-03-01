@@ -148,6 +148,7 @@ class MessageContainer(abc.ABC):
     ) -> Result[
         tuple[TextDisplay, flare.Row], tuple[TextDisplay, hikari.UndefinedType]
     ]:
+        # TODO: Support stdin and args passed into program. 
         res = await self._parse_message(message.content, message.attachments)
 
         if isinstance(res, Err):
