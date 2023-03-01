@@ -17,4 +17,4 @@ RUN pip3 install poetry
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev --no-root
 
-CMD ["poetry", "run", "python", "-m", "bot", "-OO"]
+CMD ["poetry", "run", "python", "-OO", "-m", "bot"]
