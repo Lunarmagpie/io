@@ -69,9 +69,9 @@ class MessageContainer(abc.ABC):
 
         match = CODE_REGEX.search(message)
 
-        runtime_name: str
+        runtime_name: str | None = None
         runtime_version: str | None = None
-        code: str
+        code: str | None = None
 
         if not match:
             for attachment in attachments:
@@ -92,9 +92,11 @@ class MessageContainer(abc.ABC):
 
         # args are checked in a message with the code block removed
         # this allows `io/run ```lang` to work properly.
-        args = self._find_args(CODE_REGEX.sub("", message))
+        args = self._find_args(message)
 
         if args:
+            # The runtime name and version in the message takes priority over
+            # the runtime name in the codeblock. 
             runtime_name = args.runtime_name
             runtime_version = args.runtime_version
 
@@ -111,14 +113,11 @@ class MessageContainer(abc.ABC):
 
     @staticmethod
     def _find_args(message: str | None) -> ArgResult | None:
-        """
-        Return a tuple of (lang, version) if its provided as an argument.
-        """
         if not message:
             return None
 
         # args are entered like `io/run python3`
-        args = message.splitlines()[0].split(" ")[1:]
+        args = CODE_REGEX.sub("", message).splitlines()[0].split(" ")[1:]
 
         if not args:
             return None
