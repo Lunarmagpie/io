@@ -19,8 +19,18 @@ from bot.version_manager import Language
 
 
 class Code(t.NamedTuple):
-    lang: str
+    runtime_name: str
+    runtime_version: str | None
     code: str
+
+    compiler_args: str
+    args: str
+    stdin: str
+
+
+class ArgResult(t.NamedTuple):
+    runtime_name: str
+    runtime_version: str | None
 
 
 bot_messages: t.MutableMapping[
@@ -47,7 +57,7 @@ class MessageContainer(abc.ABC):
         )
         """Dictionary of user messages to bot messages."""
 
-    async def _find_code(
+    async def _parse_message(
         self, message: str | None, attachments: t.Sequence[hikari.Attachment]
     ) -> Result[Code, TextDisplay]:
         if not message:
@@ -59,17 +69,15 @@ class MessageContainer(abc.ABC):
 
         match = CODE_REGEX.search(message)
 
+        runtime_name: str
+        runtime_version: str | None = None
+        code: str
+
         if not match:
             for attachment in attachments:
                 if "." in attachment.filename:
-                    lang = attachment.filename.split(".")[1]
-
-                    return Ok(
-                        Code(
-                            lang=self.unalias(lang),
-                            code=(await attachment.read()).decode(),
-                        )
-                    )
+                    runtime_name = attachment.filename.split(".")[1]
+                    code = (await attachment.read()).decode()
 
             return Err(
                 TextDisplay(
@@ -77,18 +85,32 @@ class MessageContainer(abc.ABC):
                 )
             )
 
-        code = match.group()
-        lines = code.splitlines()
+        code_lines = match.group().splitlines()
+
+        runtime_name = self.unalias(code_lines[0].removeprefix("```"))
+        code = "\n".join(code_lines[1:-1])
+
+        # args are checked in a message with the code block removed
+        # this allows `io/run ```lang` to work properly.
+        args = self._find_args(CODE_REGEX.sub("", message))
+
+        if args:
+            runtime_name = args.runtime_name
+            runtime_version = args.runtime_version
 
         return Ok(
             Code(
-                lang=self.unalias(lines[0].removeprefix("```")),
-                code="\n".join(lines[1:-1]),
+                runtime_name=runtime_name,
+                runtime_version=runtime_version,
+                code=code,
+                args="",
+                compiler_args="",
+                stdin="",
             )
         )
 
     @staticmethod
-    def _find_args(message: str | None) -> tuple[str, str | None] | None:
+    def _find_args(message: str | None) -> ArgResult | None:
         """
         Return a tuple of (lang, version) if its provided as an argument.
         """
@@ -107,44 +129,37 @@ class MessageContainer(abc.ABC):
         if "-" in lang_and_version:
             lang_parts = lang_and_version.split("-")
             if len(lang_parts) > 1:
-                lang, version = lang_parts[:2]
+                runtime_name, runtime_version = lang_parts[:2]
             else:
-                lang = lang_and_version
-                version = None
+                runtime_name = lang_and_version
+                runtime_version = None
 
         else:
-            lang = lang_and_version
-            version = None
+            runtime_name = lang_and_version
+            runtime_version = None
 
-        return (lang, version)
+        return ArgResult(runtime_name=runtime_name, runtime_version=runtime_version)
 
     async def with_code_wrapper(
         self,
         author: hikari.Snowflake,
         message: hikari.Message,
         version: str | None = None,
-        old_lang: str | None = None,
+        old_runtime_name: str | None = None,
     ) -> Result[
         tuple[TextDisplay, flare.Row], tuple[TextDisplay, hikari.UndefinedType]
     ]:
-        res = await self._find_code(message.content, message.attachments)
-        maybe_args = self._find_args(message.content)
+        res = await self._parse_message(message.content, message.attachments)
 
         if isinstance(res, Err):
             return Err((res.value, hikari.UNDEFINED))
 
-        lang = res.value.lang
+        runtime_name = res.value.runtime_name
 
-        if old_lang and old_lang != lang:
+        if old_runtime_name and old_runtime_name != runtime_name:
             version = None
 
-        if maybe_args:
-            if not version:
-                lang, version = maybe_args
-            else:
-                lang, _ = maybe_args
-
-        if not lang:
+        if not runtime_name:
             return Err(
                 (
                     TextDisplay(
@@ -154,20 +169,20 @@ class MessageContainer(abc.ABC):
                 )
             )
 
-        language = self.get_version(lang, version)
+        language = self.get_version(runtime_name, version)
         if not language:
             return Err(
                 (
-                    TextDisplay(error=f"Language `{lang}` is not supported."),
+                    TextDisplay(error=f"Language `{runtime_name}` is not supported."),
                     hikari.UNDEFINED,
                 )
             )
 
         text = await self.with_code(
             message,
-            lang,
+            runtime_name,
             language.version,
-            transform_code(lang, res.value.code),
+            transform_code(runtime_name, res.value.code),
         )
 
         return Ok(
@@ -177,7 +192,7 @@ class MessageContainer(abc.ABC):
                     self.get_select(
                         author,
                         message,
-                        lang,
+                        runtime_name,
                         language.version,
                     )
                 ),
@@ -323,7 +338,10 @@ class MessageContainer(abc.ABC):
 
         text, component = (
             await self.with_code_wrapper(
-                user_message.author.id, user_message, version=version, old_lang=lang
+                user_message.author.id,
+                user_message,
+                version=version,
+                old_runtime_name=lang,
             )
         ).value
 
