@@ -2,8 +2,8 @@ import crescent
 import flare
 import hikari
 import more_itertools
-from miru.ext import nav
 import rapidfuzz
+from miru.ext import nav
 
 from bot.buttons import delete_button
 from bot.config import CONFIG
@@ -80,7 +80,7 @@ async def on_message(event: hikari.MessageCreateEvent) -> None:
     if not event.message.content:
         return
 
-    if me.mention not in event.message.content:
+    if not event.message.content.startswith(me.mention):
         return
 
     resp = await event.message.respond(
