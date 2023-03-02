@@ -390,6 +390,8 @@ class MessageContainer(abc.ABC):
         new_args = self._find_args(event.message)
         old_args = self._find_args(old_message)
 
+        # If the user edited the lang or version in the message arguments, we update
+        # the lang and version. Otherwise the lang and version is not changed.
         if old_args and new_args:
             new_message_runtime_name = new_args.runtime_name
             new_message_runtime_version = new_args.runtime_version
