@@ -19,8 +19,22 @@ from bot.version_manager import Language
 
 
 class Code(t.NamedTuple):
-    lang: str
+    runtime_name: str
+    runtime_version: str | None
     code: str
+
+    compiler_args: str | None
+    args: str | None
+    stdin: str | None
+
+
+class ArgResult(t.NamedTuple):
+    runtime_name: str
+    runtime_version: str | None
+
+    compiler_args: str
+    args: str
+    stdin: str
 
 
 bot_messages: t.MutableMapping[
@@ -47,56 +61,85 @@ class MessageContainer(abc.ABC):
         )
         """Dictionary of user messages to bot messages."""
 
-    async def _find_code(
-        self, message: str | None, attachments: t.Sequence[hikari.Attachment]
+        self.old_messages: t.MutableMapping[
+            hikari.Snowflake, hikari.PartialMessage
+        ] = cachetools.TTLCache(
+            maxsize=10000, ttl=datetime.timedelta(minutes=20).total_seconds()
+        )
+        """dictionary of message ID to the previous version of the message"""
+
+    async def _parse_message(
+        self, message: hikari.Message | None
     ) -> Result[Code, TextDisplay]:
-        if not message:
+        if not message or not message.content:
             return Err(
                 TextDisplay(
                     description="No code block was found in the provided message.",
                 )
             )
 
-        match = CODE_REGEX.search(message)
+        match = CODE_REGEX.search(message.content)
+
+        runtime_name: str | None = None
+        runtime_version: str | None = None
+        code: str | None = None
+        args: str | None = None
+        compiler_args: str | None = None
+        stdin: str | None = None
 
         if not match:
-            for attachment in attachments:
+            for attachment in message.attachments:
                 if "." in attachment.filename:
-                    lang = attachment.filename.split(".")[1]
-
-                    return Ok(
-                        Code(
-                            lang=self.unalias(lang),
-                            code=(await attachment.read()).decode(),
-                        )
+                    runtime_name = attachment.filename.split(".")[1]
+                    code = (await attachment.read()).decode()
+                    break
+            else:
+                return Err(
+                    TextDisplay(
+                        description="No code block or file was found in the provided message.",
                     )
-
-            return Err(
-                TextDisplay(
-                    description="No code block or file was found in the provided message.",
                 )
-            )
+        else:
+            code_lines = match.group().splitlines()
 
-        code = match.group()
-        lines = code.splitlines()
+            runtime_name = code_lines[0].removeprefix("```")
+            code = "\n".join(code_lines[1:-1])
+
+        if message_args := self._find_args(message):
+            # The runtime name and version in the message takes priority over
+            # the runtime name in the codeblock.
+            runtime_name = message_args.runtime_name
+            runtime_version = message_args.runtime_version
+            args = message_args.args
+            compiler_args = message_args.compiler_args
+            stdin = message_args.stdin
 
         return Ok(
             Code(
-                lang=self.unalias(lines[0].removeprefix("```")),
-                code="\n".join(lines[1:-1]),
+                runtime_name=self.unalias(runtime_name),
+                runtime_version=runtime_version,
+                code=code,
+                args=args,
+                compiler_args=compiler_args,
+                stdin=stdin,
             )
         )
 
-    @staticmethod
-    def _find_args(message: str | None) -> tuple[str, str | None] | None:
-        """
-        Return a tuple of (lang, version) if its provided as an argument.
-        """
-        if not message:
+    def _find_args(self, message: hikari.PartialMessage | None) -> ArgResult | None:
+        if not message or not message.content:
+            return None
+
+        # args can only be entered after the command prefix
+        if not self.starts_with_prefix(
+            message=message.content,
+            prefix="run",
+            me=self.app.get_me(),
+            guild_id=message.guild_id,
+        ):
             return None
 
         # args are entered like `io/run python3`
-        args = message.splitlines()[0].split(" ")[1:]
+        args = CODE_REGEX.sub("", message.content).splitlines()[0].split(" ")[1:]
 
         if not args:
             return None
@@ -107,44 +150,44 @@ class MessageContainer(abc.ABC):
         if "-" in lang_and_version:
             lang_parts = lang_and_version.split("-")
             if len(lang_parts) > 1:
-                lang, version = lang_parts[:2]
+                runtime_name, runtime_version = lang_parts[:2]
             else:
-                lang = lang_and_version
-                version = None
+                runtime_name = lang_and_version
+                runtime_version = None
 
         else:
-            lang = lang_and_version
-            version = None
+            runtime_name = lang_and_version
+            runtime_version = None
 
-        return (lang, version)
+        return ArgResult(
+            runtime_name=runtime_name,
+            runtime_version=runtime_version,
+            args="",
+            compiler_args="",
+            stdin="",
+        )
 
     async def with_code_wrapper(
         self,
         author: hikari.Snowflake,
         message: hikari.Message,
-        version: str | None = None,
-        old_lang: str | None = None,
+        runtime_version: str | None = None,
+        runtime_name: str | None = None,
     ) -> Result[
         tuple[TextDisplay, flare.Row], tuple[TextDisplay, hikari.UndefinedType]
     ]:
-        res = await self._find_code(message.content, message.attachments)
-        maybe_args = self._find_args(message.content)
+        # TODO: Support stdin and args passed into program.
+        res = await self._parse_message(message)
 
         if isinstance(res, Err):
             return Err((res.value, hikari.UNDEFINED))
 
-        lang = res.value.lang
+        if not runtime_name:
+            runtime_name = res.value.runtime_name
+        if not runtime_version:
+            runtime_version = res.value.runtime_version
 
-        if old_lang and old_lang != lang:
-            version = None
-
-        if maybe_args:
-            if not version:
-                lang, version = maybe_args
-            else:
-                lang, _ = maybe_args
-
-        if not lang:
+        if not runtime_name:
             return Err(
                 (
                     TextDisplay(
@@ -154,20 +197,20 @@ class MessageContainer(abc.ABC):
                 )
             )
 
-        language = self.get_version(lang, version)
+        language = self.get_version(runtime_name, runtime_version)
         if not language:
             return Err(
                 (
-                    TextDisplay(error=f"Language `{lang}` is not supported."),
+                    TextDisplay(error=f"Language `{runtime_name}` is not supported."),
                     hikari.UNDEFINED,
                 )
             )
 
         text = await self.with_code(
             message,
-            lang,
+            runtime_name,
             language.version,
-            transform_code(lang, res.value.code),
+            transform_code(runtime_name, res.value.code),
         )
 
         return Ok(
@@ -177,7 +220,7 @@ class MessageContainer(abc.ABC):
                     self.get_select(
                         author,
                         message,
-                        lang,
+                        runtime_name,
                         language.version,
                     )
                 ),
@@ -229,7 +272,37 @@ class MessageContainer(abc.ABC):
         )
 
         self.message_cache[message.id] = resp_message.id
+        self.old_messages[message.id] = message
         bot_messages[resp_message.id] = (message.id, ctx.user.id)
+
+    def starts_with_prefix(
+        self,
+        *,
+        message: str,
+        prefix: str,
+        me: hikari.OwnUser | None,
+        guild_id: hikari.Snowflake | None,
+    ) -> bool:
+        if guild_id:
+            guild_prefixes = (
+                guild_prefix + prefix for guild_prefix in PREFIX_CACHE[guild_id]
+            )
+        else:
+            guild_prefixes = ()
+
+        mentions = [
+            CONFIG.PREFIX + prefix,
+            *guild_prefixes,
+        ]
+        if me:
+            mentions.extend(
+                [
+                    me.mention + prefix,
+                    me.mention + "/" + prefix,
+                ]
+            )
+
+        return message.startswith(tuple(mentions))
 
     async def on_message(self, event: hikari.MessageCreateEvent, prefix: str) -> None:
         if not event.is_human:
@@ -245,20 +318,11 @@ class MessageContainer(abc.ABC):
 
         content = event.message.content.lower()
 
-        if isinstance(event, hikari.GuildMessageCreateEvent):
-            guild_prefixes = (
-                guild_prefix + prefix for guild_prefix in PREFIX_CACHE[event.guild_id]
-            )
-        else:
-            guild_prefixes = ()
-
-        if not content.startswith(
-            (
-                me.mention + prefix,
-                me.mention + "/" + prefix,
-                CONFIG.PREFIX + prefix,
-                *guild_prefixes,
-            )
+        if not self.starts_with_prefix(
+            message=content,
+            prefix=prefix,
+            me=me,
+            guild_id=getattr(event, "guild_id"),
         ):
             return
 
@@ -279,12 +343,14 @@ class MessageContainer(abc.ABC):
         )
 
         self.message_cache[event.message.id] = resp_message.id
+        self.old_messages[event.message.id] = event.message
         bot_messages[resp_message.id] = (event.message.id, event.author.id)
 
     async def on_edit(self, event: hikari.MessageUpdateEvent) -> None:
         bot_message = self.message_cache.get(event.message.id)
+        old_message = self.old_messages.get(event.message.id)
 
-        if not bot_message:
+        if not (bot_message and old_message):
             return
 
         await self.add_reaction(
@@ -321,9 +387,30 @@ class MessageContainer(abc.ABC):
         else:
             lang, version = None, None
 
+        new_args = self._find_args(event.message)
+        old_args = self._find_args(old_message)
+
+        # If the user edited the lang or version in the message arguments, we update
+        # the lang and version. Otherwise the lang and version is not changed.
+        if old_args and new_args:
+            new_message_runtime_name = new_args.runtime_name
+            new_message_runtime_version = new_args.runtime_version
+            old_message_runtime_name = old_args.runtime_name
+            old_message_runtime_version = old_args.runtime_version
+
+            if (
+                new_message_runtime_name != old_message_runtime_name
+                or new_message_runtime_version != old_message_runtime_version
+            ):
+                lang = new_message_runtime_name
+                version = new_message_runtime_version
+
         text, component = (
             await self.with_code_wrapper(
-                user_message.author.id, user_message, version=version, old_lang=lang
+                user_message.author.id,
+                user_message,
+                runtime_version=version,
+                runtime_name=lang,
             )
         ).value
 
@@ -343,6 +430,7 @@ class MessageContainer(abc.ABC):
 
         if data and data[0]:
             self.message_cache.pop(data[0], None)
+            self.old_messages.pop(data[0], None)
 
     def get_select(
         self,
@@ -426,7 +514,9 @@ async def version_select(
     message = await ctx.app.rest.fetch_message(channel_id, message_id)
 
     text, component = (
-        await container.with_code_wrapper(ctx.author.id, message, version=version)
+        await container.with_code_wrapper(
+            ctx.author.id, message, runtime_version=version
+        )
     ).value
 
     container.remove_reaction(channel_id=channel_id, message_id=message_id)
