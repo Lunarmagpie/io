@@ -2,8 +2,8 @@ import crescent
 import flare
 import hikari
 import more_itertools
-from miru.ext import nav
 import rapidfuzz
+from miru.ext import nav
 
 from bot.buttons import delete_button
 from bot.config import CONFIG
