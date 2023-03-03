@@ -372,8 +372,9 @@ class MessageContainer(abc.ABC):
         # This makes it so I don't have to cache it.
         components = bot_message.components
 
+        lang, version = None, None
         if components:
-            option = next(
+            options = list(
                 filter(
                     lambda x: x.is_default,
                     t.cast(
@@ -383,9 +384,8 @@ class MessageContainer(abc.ABC):
                 )
             )
 
-            lang, version = option.value.split(":")
-        else:
-            lang, version = None, None
+            if options:
+                lang, version = options[0].value.split(":")
 
         new_args = self._find_args(event.message)
         old_args = self._find_args(old_message)
@@ -441,23 +441,29 @@ class MessageContainer(abc.ABC):
     ) -> flare.TextSelect:
         runtimes = self.get_runtimes(lang)
 
-        options = [
-            hikari.SelectMenuOption(
-                label=runtime.full_name,
-                value=f"{runtime.name}:{runtime.version}",
-                description=None,
-                emoji=None,
-                is_default=runtime.version == version,
-            )
-            for runtime in runtimes
-        ]
-
-        return version_select(
+        options: list[hikari.SelectMenuOption] = []
+        select = version_select(
             author_id=author,
             channel_id=message.channel_id,
             message_id=message.id,
             container=self,
-        ).set_options(*options[:25])
+        )
+
+        for runtime in runtimes:
+            options.append(
+                hikari.SelectMenuOption(
+                    label=runtime.full_name,
+                    value=f"{runtime.name}:{runtime.version}",
+                    description=None,
+                    emoji=None,
+                    is_default=runtime.version == version,
+                )
+            )
+
+            if runtime.version == version:
+                select.set_placeholder(runtime.full_name)
+
+        return select.set_options(*options[:25])
 
     @staticmethod
     @abc.abstractmethod
