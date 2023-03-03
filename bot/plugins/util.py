@@ -161,7 +161,10 @@ class Runtimes:
             embed.set_description("\n".join(this_page_langs))
             return embed.build()
 
-        langs = list(f"{runtime.name}-{runtime.version}" for runtime in runtimes)
+        langs = list(
+            f"{runtime.name}-{runtime.version.replace(' ', '-')}"
+            for runtime in runtimes
+        )
 
         if len(langs) < 10:
             await ctx.respond(embed=build_page_embed(langs))

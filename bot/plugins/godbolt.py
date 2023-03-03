@@ -13,9 +13,7 @@ container: "Container"
 
 
 class Container(MessageContainer):
-    async def with_code(
-        self, message: hikari.Message, lang: str, version: str | None, code: str
-    ) -> TextDisplay:
+    async def with_code(self, lang: str, version: str | None, code: str) -> TextDisplay:
         result = await plugin.model.versions.compile(lang, code, version=version)
         if isinstance(result, Err):
             return TextDisplay(
@@ -49,6 +47,10 @@ class Container(MessageContainer):
     def get_version(lang: str, version: str | None) -> Language | None:
         return plugin.model.versions.find_version(lang, version)
 
+    @staticmethod
+    def get_prefix() -> str:
+        return "asm"
+
 
 @plugin.load_hook
 def on_load() -> None:
@@ -65,7 +67,7 @@ async def asm(ctx: crescent.Context, message: hikari.Message) -> None:
 @plugin.include
 @crescent.event
 async def on_message(event: hikari.MessageCreateEvent) -> None:
-    await container.on_message(event, "asm")
+    await container.on_message(event)
 
 
 @plugin.include

@@ -132,7 +132,6 @@ class MessageContainer(abc.ABC):
         # args can only be entered after the command prefix
         if not self.starts_with_prefix(
             message=message.content,
-            prefix="run",
             me=self.app.get_me(),
             guild_id=message.guild_id,
         ):
@@ -207,7 +206,6 @@ class MessageContainer(abc.ABC):
             )
 
         text = await self.with_code(
-            message,
             runtime_name,
             language.version,
             transform_code(runtime_name, res.value.code),
@@ -248,9 +246,7 @@ class MessageContainer(abc.ABC):
         )
 
     @abc.abstractmethod
-    async def with_code(
-        self, message: hikari.Message, lang: str, version: str | None, code: str
-    ) -> TextDisplay:
+    async def with_code(self, lang: str, version: str | None, code: str) -> TextDisplay:
         """Do something with the code."""
 
     async def on_command(self, ctx: crescent.Context, message: hikari.Message) -> None:
@@ -279,32 +275,32 @@ class MessageContainer(abc.ABC):
         self,
         *,
         message: str,
-        prefix: str,
         me: hikari.OwnUser | None,
         guild_id: hikari.Snowflake | None,
     ) -> bool:
         if guild_id:
             guild_prefixes = (
-                guild_prefix + prefix for guild_prefix in PREFIX_CACHE[guild_id]
+                guild_prefix + self.get_prefix()
+                for guild_prefix in PREFIX_CACHE[guild_id]
             )
         else:
             guild_prefixes = ()
 
         mentions = [
-            CONFIG.PREFIX + prefix,
+            CONFIG.PREFIX + self.get_prefix(),
             *guild_prefixes,
         ]
         if me:
             mentions.extend(
                 [
-                    me.mention + prefix,
-                    me.mention + "/" + prefix,
+                    me.mention + self.get_prefix(),
+                    me.mention + "/" + self.get_prefix(),
                 ]
             )
 
         return message.startswith(tuple(mentions))
 
-    async def on_message(self, event: hikari.MessageCreateEvent, prefix: str) -> None:
+    async def on_message(self, event: hikari.MessageCreateEvent) -> None:
         if not event.is_human:
             return
 
@@ -320,7 +316,6 @@ class MessageContainer(abc.ABC):
 
         if not self.starts_with_prefix(
             message=content,
-            prefix=prefix,
             me=me,
             guild_id=getattr(event, "guild_id"),
         ):
@@ -473,6 +468,11 @@ class MessageContainer(abc.ABC):
     @staticmethod
     @abc.abstractmethod
     def get_version(lang: str, version: str | None) -> Language | None:
+        ...
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_prefix() -> str:
         ...
 
 
