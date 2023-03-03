@@ -15,9 +15,7 @@ def transform_code(lang: str, code: str) -> str:
 
     match lang:
         case "java":
-            if code.strip().startswith("public"):
-                return JAVA_PUBLIC_CLASS_REGEX.sub("class", code, count=1)
-            return code
+            return JAVA_PUBLIC_CLASS_REGEX.sub("class", code, count=1)
 
         case "rust":
             if not RUST_FN_REGEX.search(code):

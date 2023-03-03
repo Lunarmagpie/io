@@ -13,8 +13,8 @@ from result import Err, Ok, Result
 
 from bot.config import CONFIG
 from bot.display import TextDisplay
+from bot.fixes import transform_code
 from bot.plugins.prefixes import PREFIX_CACHE
-from bot.transforms import transform_code
 from bot.version_manager import Language
 
 
