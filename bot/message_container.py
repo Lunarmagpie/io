@@ -149,7 +149,8 @@ class MessageContainer(abc.ABC):
         if "-" in lang_and_version:
             lang_parts = lang_and_version.split("-")
             if len(lang_parts) > 1:
-                runtime_name, runtime_version = lang_parts[:2]
+                runtime_name, *runtime_version = lang_parts
+                runtime_version = " ".join(runtime_version)
             else:
                 runtime_name = lang_and_version
                 runtime_version = None
@@ -198,6 +199,16 @@ class MessageContainer(abc.ABC):
 
         language = self.get_version(runtime_name, runtime_version)
         if not language:
+            if self.get_version(runtime_name, None):
+                return Err(
+                    (
+                        TextDisplay(
+                            error=f"Language `{runtime_name}` has no version `{runtime_version}`."
+                        ),
+                        hikari.UNDEFINED,
+                    )
+                )
+
             return Err(
                 (
                     TextDisplay(error=f"Language `{runtime_name}` is not supported."),
