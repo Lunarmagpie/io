@@ -7,6 +7,7 @@ ENV VERSION=$VERSION_TAG
 
 # Copy files for poetry
 COPY pyproject.toml /app/pyproject.toml
+COPY poetry.lock /app/poetry.lock
 
 # Copy source code
 COPY bot/ /app/bot
