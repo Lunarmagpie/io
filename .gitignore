@@ -161,6 +161,5 @@ cython_debug/
 .vscode
 
 .env
-poetry.lock
 
 data/
