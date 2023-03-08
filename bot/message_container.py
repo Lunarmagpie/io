@@ -102,14 +102,14 @@ class MessageContainer(abc.ABC):
         else:
             code_lines = match.group().splitlines()
 
-            runtime_name = code_lines[0].removeprefix("```")
+            runtime_name = code_lines[0].strip().removeprefix("```")
             code = "\n".join(code_lines[1:-1])
 
         if message_args := self._find_args(message):
             # The runtime name and version in the message takes priority over
             # the runtime name in the codeblock.
-            runtime_name = message_args.runtime_name
-            runtime_version = message_args.runtime_version
+            runtime_name = runtime_name or message_args.runtime_name
+            runtime_version = runtime_version or message_args.runtime_version
             args = message_args.args
             compiler_args = message_args.compiler_args
             stdin = message_args.stdin
