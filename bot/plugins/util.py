@@ -29,7 +29,7 @@ HELP_EMBEDS = [
         f"\n\\* View Assembly - Use the `Assembly` message command or start your message with `{CONFIG.PREFIX}asm`."  # noqa: E501
         f"\n\\* Delete my response - Use the `Delete` message command."
         "\n"
-        "\nYou can use message commands by right clicking on a message,"
+        "\nYou can use message commands by right-clicking on a message, "
         "selecting the `Apps` subcategory, then finding the command from there."
     )
     .build(),
