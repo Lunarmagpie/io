@@ -21,7 +21,8 @@ more-itertools = "^9.1.0"
 rapidfuzz = "^2.13.7"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
+black = ">=23.1.0"
+ruff = ">=0.0.254" 
 
 [build-system]
 requires = ["poetry-core"]
