@@ -178,6 +178,7 @@ class Runtimes:
         await nav_.send(ctx.interaction)
 
 
+@plugin.include
 @crescent.command(description="View some info about the bot.")
 async def info(ctx: crescent.Context) -> None:
     embed = EmbedBuilder()
