@@ -4,12 +4,15 @@ import asyncio
 import collections
 import dataclasses
 import enum
+import logging
 import typing as t
 
 from result import Err, Result
 
 from bot import godbolt, piston
 from bot.response import ASMResponse, RunResponse
+
+LOG = logging.getLogger(__file__)
 
 
 class Provider(enum.Enum):
@@ -112,8 +115,15 @@ class VersionManager:
 
     async def update(self) -> t.NoReturn:
         while True:
-            await self.godbolt.update_data()
-            await self.piston.update_data()
+            try:
+                await self.godbolt.update_data()
+            except Exception as e:
+                LOG.exception(e)
+
+            try:
+                await self.piston.update_data()
+            except Exception as e:
+                LOG.exception(e)
 
             self.langs = collections.defaultdict(list)
 
