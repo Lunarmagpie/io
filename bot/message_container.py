@@ -101,6 +101,9 @@ class MessageContainer(abc.ABC):
                 )
         else:
             code_lines = match.group().splitlines()
+            if code_lines[-1].strip() != "```":
+                code_lines[-1] = code_lines[-1].removesuffix("```")
+                code_lines.append("```")
 
             runtime_name = code_lines[0].strip().removeprefix("```")
             code = "\n".join(code_lines[1:-1])
