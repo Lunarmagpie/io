@@ -77,6 +77,6 @@ class TextDisplay:
             out += f"\n```ansi\n{quantized}\n```"
 
         if self.code is None:
-            out += "\n```\nNo output```"
+            return "No output"
 
         return out
